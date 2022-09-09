@@ -2,15 +2,18 @@ import crypto from 'crypto';
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+// For more info on Mongoose schemas, see https://mongoosejs.com/docs/schematypes.html
 //TODO - Setup a logout timestamp and make jwt invalid just like with passwordChangedAt.
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
+        // required: [true, 'Please tell us your name!'] means that the name field is required and if it is not provided, the error message will be 'Please tell us your name!'
         required: [true, 'Please tell us your name!'],
     },
     email: {
         type: String,
         required: [true, 'Please provide your email'],
+        // unique: true means that the email field must be unique. If it is not unique, the error message will be 'Email address already exists'
         unique: true,
         lowercase: true,
         validate: [validator.isEmail, 'Please provide a valid email'],
@@ -75,6 +78,7 @@ userSchema.pre(/^find/, function (next) {
 userSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
     return await bcrypt.compare(candidatePassword, userPassword);
 };
+// type of JWTTimestamp is number
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     if (this.passwordChangedAt) {
         const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
@@ -92,8 +96,11 @@ userSchema.methods.createPasswordResetToken = function () {
     return resetToken;
 };
 userSchema.methods.createSignupToken = function () {
+    // crypto.randomBytes(32).toString('hex') returns a random string of 32 characters. For example: 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed
     const token = crypto.randomBytes(32).toString('hex');
+    // The below line of code hashes the token and returns the hash
     this.signupToken = crypto.createHash('sha256').update(token).digest('hex');
+    // signupTokenExpires expires in 12 hours from now
     this.signupTokenExpires = Date.now() + 12 * 60 * 60 * 1000;
     return token;
 };

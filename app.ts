@@ -13,6 +13,8 @@ import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import compression from 'compression';
 
+import globalErrorHandler from './controllers/errorController.js';
+
 import cors from 'cors';
 
 import { dirname } from 'path';
@@ -98,5 +100,8 @@ app.get('/', (req: Request, res: Response) => {
     message: 'Hello World',
   });
 });
+
+// app.use(globalErrorHandler) is used to handle errors that occur in the application and are not handled by the application itself
+app.use(globalErrorHandler);
 
 export default app;

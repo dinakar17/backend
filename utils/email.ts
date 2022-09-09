@@ -12,6 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default class Email {
   to: string;
   firstName: string;
+  // Here url = ${process.env.CLIENT_URL}/auth/confirmSignup/${signupToken} for signup
   url: string;
   from: string;
   constructor(user: HydratedDocument<IUser>, url: string) {
@@ -22,6 +23,8 @@ export default class Email {
   }
 
   newTransport() {
+    // if the app is in production, we use sendgrid to send emails
+    // use sendgrid instead of gmail. Ref: https://midnightgamer.medium.com/how-to-use-sendgrid-with-nodemailer-to-send-mails-a289f30af622
     if (process.env.NODE_ENV === "production") {
       return nodemailer.createTransport({
         service: "SendGrid",
@@ -33,8 +36,7 @@ export default class Email {
     }
 
     return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
@@ -61,7 +63,7 @@ export default class Email {
   }
 
   async sendSignup() {
-    await this.send("confirmSignup", "Email confirmation for Blog App");
+    await this.send("confirmSignup", "Email confirmation for NITC Blogs");
   }
 
   async sendPasswordReset() {

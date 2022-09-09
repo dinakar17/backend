@@ -9,9 +9,11 @@ import mongoSanitize from 'express-mongo-sanitize';
 // import xss from 'xss-clean';
 import hpp from 'hpp';
 import compression from 'compression';
+import globalErrorHandler from './controllers/errorController.js';
 import cors from 'cors';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import userRouter from './routes/userRoutes.js';
 // direname(fileURLToPath(import.meta.url)) is used to get the current directory path of the file
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // process.on() is a global event handler that is called whenever an uncaught exception occurs
@@ -63,10 +65,13 @@ app.use(hpp());
 app.use(compression());
 // The following routes are used to handle requests to the different endpoints of the application and are defined in the routes folder
 // From here on, head over to the routes folder to see how the routes are defined
+app.use('/api/v1/users', userRouter);
 app.get('/', (req, res) => {
     res.status(200).json({
         status: 'success',
         message: 'Hello World',
     });
 });
+// app.use(globalErrorHandler) is used to handle errors that occur in the application and are not handled by the application itself
+app.use(globalErrorHandler);
 export default app;
