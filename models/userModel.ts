@@ -142,13 +142,16 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp: Number) {
 };
 
 userSchema.methods.createPasswordResetToken = function () {
+  // | resetToken is a random string of 32 characters
   const resetToken = crypto.randomBytes(32).toString('hex');
 
+  // | encrypt the resetToken and save it to the database
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
 
+  // | set the passwordResetExpires to 10 minutes from now
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
   return resetToken;
@@ -158,6 +161,7 @@ userSchema.methods.createSignupToken = function () {
   // crypto.randomBytes(32).toString('hex') returns a random string of 32 characters. 
   // For example: 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed
   const token = crypto.randomBytes(32).toString('hex');
+  // Todo: Know the purpose of signupToken and signupTokenExpires
   // The below line of code hashes the token and returns the hash
   this.signupToken = crypto.createHash('sha256').update(token).digest('hex');
 
