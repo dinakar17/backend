@@ -1,0 +1,218 @@
+POST: body: {name, email, password, passwordConfirm}
+{
+    "status": "success",
+    "message": "Signup token sent to the email!"
+}
+
+POST: req.params.token
+{
+    "status": "success",
+    "message": "Verification Successful. Please login to continue"
+}
+
+POST: email, password 
+{
+    "status": "success",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzMWYwMjYwMDkzZDZkYjk3NjYzNTg4ZCIsImlhdCI6MTY2Mjk3NjgyMiwiZXhwIjoxNjYzMDYzMjIyfQ.0VaDgSg-Dd4aRtJc8xHL4idCPVVHeGBWWK0lnghP4vI",
+    "data": {
+        "user": {
+            "_id": "631f0260093d6db97663588d",
+            "name": "Dinakar",
+            "email": "dinakar.chennupati17@gmail.com",
+            "createdAt": "2022-09-12T09:56:48.532Z",
+            "updatedAt": "2022-09-12T09:59:06.729Z",
+            "__v": 0
+        }
+    }
+}
+
+{
+    "status": "success",
+    "message": "Password reset token sent to email!"
+}
+
+PATCH: body: {password, passwordConfirm} req.params.token
+{
+    "status": "success",
+    "message": "Password changed successfully. Please login to continue"
+}
+
+{
+    "title": "Sample title",
+    "description": "Sample description",
+    "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+    "branch": "EEE",
+    "tags": "['hello', 'world', 'myname', 'is', 'Dinakar']",
+     "content": "<p>Hello world</p>"
+}
+{
+    "status": "success",
+    "data": {
+        "title": "Sample title",
+        "description": "Sample description",
+        "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+        "branch": "EEE",
+        "tags": [
+            "['hello', 'world', 'myname', 'is', 'Dinakar']"
+        ],
+        "content": "<p>Hello world</p>",
+        "user": "631f0260093d6db97663588d",
+        "_id": "631f4c609eef5fbfb8c4c291",
+        "createdAt": "2022-09-12T15:12:32.628Z",
+        "updatedAt": "2022-09-12T15:12:32.628Z",
+        "slug": "sample-title",
+        "__v": 0,
+        "id": "631f4c609eef5fbfb8c4c291"
+    }
+}
+
+{
+    "data": [
+        {
+            "_id": "631f4e21d4506c194b158ddc",
+            "title": "Sample another title",
+            "description": "Sample description",
+            "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+            "branch": "EEE",
+            "tags": [
+                "[\"hello\", \"world\", \"myname\", \"is\", \"Dinakar\"]"
+            ],
+            "user": {
+                "_id": "631f0260093d6db97663588d",
+                "name": "Dinakar"
+            },
+            "createdAt": "2022-09-12T15:20:01.245Z",
+            "updatedAt": "2022-09-12T15:20:01.245Z",
+            "slug": "sample-another-title",
+            "id": "631f4e21d4506c194b158ddc"
+        },
+        {
+            "_id": "631f4c609eef5fbfb8c4c291",
+            "title": "Sample title",
+            "description": "Sample description",
+            "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+            "branch": "EEE",
+            "tags": [
+                "['hello', 'world', 'myname', 'is', 'Dinakar']"
+            ],
+            "user": {
+                "_id": "631f0260093d6db97663588d",
+                "name": "Dinakar"
+            },
+            "createdAt": "2022-09-12T15:12:32.628Z",
+            "updatedAt": "2022-09-12T15:12:32.628Z",
+            "slug": "sample-title",
+            "id": "631f4c609eef5fbfb8c4c291"
+        }
+    ],
+    "currentPage": 1,
+    "numberOfPages": 1,
+    "totalBlogs": 2
+}
+
+
+{
+    "data": [
+        {
+            "_id": "631f5843db552059715b970b",
+            "title": "Blog Post 6",
+            "description": "Sample description",
+            "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+            "branch": "EEE",
+            "tags": [
+                "[\"hello\", \"world\", \"myname\", \"is\", \"Dinakar\"]"
+            ],
+            "user": {
+                "_id": "631f0260093d6db97663588d",
+                "name": "Dinakar"
+            },
+            "createdAt": "2022-09-12T16:03:15.180Z",
+            "updatedAt": "2022-09-12T16:03:15.180Z",
+            "slug": "blog-post-6",
+            "id": "631f5843db552059715b970b"
+        },
+        {
+            "_id": "631f583fdb552059715b9708",
+            "title": "Blog Post 5",
+            "description": "Sample description",
+            "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+            "branch": "EEE",
+            "tags": [
+                "[\"hello\", \"world\", \"myname\", \"is\", \"Dinakar\"]"
+            ],
+            "user": {
+                "_id": "631f0260093d6db97663588d",
+                "name": "Dinakar"
+            },
+            "createdAt": "2022-09-12T16:03:11.091Z",
+            "updatedAt": "2022-09-12T16:03:11.091Z",
+            "slug": "blog-post-5",
+            "id": "631f583fdb552059715b9708"
+        },
+        {
+            "_id": "631f583adb552059715b9705",
+            "title": "Blog Post 4",
+            "description": "Sample description",
+            "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+            "branch": "EEE",
+            "tags": [
+                "[\"hello\", \"world\", \"myname\", \"is\", \"Dinakar\"]"
+            ],
+            "user": {
+                "_id": "631f0260093d6db97663588d",
+                "name": "Dinakar"
+            },
+            "createdAt": "2022-09-12T16:03:06.017Z",
+            "updatedAt": "2022-09-12T16:03:06.017Z",
+            "slug": "blog-post-4",
+            "id": "631f583adb552059715b9705"
+        },
+        {
+            "_id": "631f5835db552059715b9702",
+            "title": "Blog Post 3",
+            "description": "Sample description",
+            "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+            "branch": "EEE",
+            "tags": [
+                "[\"hello\", \"world\", \"myname\", \"is\", \"Dinakar\"]"
+            ],
+            "user": {
+                "_id": "631f0260093d6db97663588d",
+                "name": "Dinakar"
+            },
+            "createdAt": "2022-09-12T16:03:01.633Z",
+            "updatedAt": "2022-09-12T16:03:01.633Z",
+            "slug": "blog-post-3",
+            "id": "631f5835db552059715b9702"
+        }
+    ],
+    "currentPage": 2,
+    "numberOfPages": 3,
+    "totalBlogs": 10,
+    "currentBlogsCount": 4
+}
+
+
+{
+    "status": "success",
+    "data": {
+        "_id": "631f4e21d4506c194b158ddc",
+        "title": "Sample another title",
+        "description": "Sample description",
+        "featuredImage": "https://images.unsplash.com/photo-1661347335435-6d851eb110f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+        "branch": "EEE",
+        "tags": [
+            "[\"hello\", \"world\", \"myname\", \"is\", \"Dinakar\"]"
+        ],
+        "content": "<p>Hello world</p>",
+        "user": {
+            "_id": "631f0260093d6db97663588d",
+            "name": "Dinakar"
+        },
+        "createdAt": "2022-09-12T15:20:01.245Z",
+        "updatedAt": "2022-09-12T15:20:01.245Z",
+        "slug": "sample-another-title",
+        "__v": 0,
+        "id": "631f4e21d4506c194b158ddc"
+    }
+}

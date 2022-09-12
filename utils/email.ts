@@ -5,9 +5,11 @@ import { convert } from "html-to-text";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { HydratedDocument } from "mongoose";
-import { IUser } from "models/userModel";
+import { IUser } from "models/userModel.js";
+import AppError from "./appError.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const __dirname = dirname(fileURLToPath(import.meta.url)); 
 
 export default class Email {
   to: string;
@@ -22,19 +24,19 @@ export default class Email {
     this.from = `Blog App <${process.env.EMAIL_FROM}>`;
   }
 
-  newTransport() {
+   newTransport() {
     // if the app is in production, we use sendgrid to send emails
     // use sendgrid instead of gmail. Ref: https://midnightgamer.medium.com/how-to-use-sendgrid-with-nodemailer-to-send-mails-a289f30af622
-    if (process.env.NODE_ENV === "production") {
-      return nodemailer.createTransport({
-        service: "SendGrid",
-        auth: {
-          user: process.env.SENDGRID_USERNAME,
-          pass: process.env.SENDGRID_PASSWORD,
-        },
-      });
-    }
-
+    // if (process.env.NODE_ENV === "production") {
+    //   return nodemailer.createTransport({
+    //     service: "SendGrid",
+    //     auth: {
+    //       user: process.env.SENDGRID_USERNAME,
+    //       pass: process.env.SENDGRID_PASSWORD,
+    //     },
+    //   });
+    // }
+    // console.log("Reached to newTransport function");
     return nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -45,7 +47,9 @@ export default class Email {
   }
 
   async send(template: string, subject: string) {
-    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
+    
+    // Todo: In production replace path file with __dirname + "/../views/email/${template}.pug"
+    const html = pug.renderFile(`C:/Users/Dinakar/Documents/NITC Blogs/backend/utils/../views/email/${template}.pug`, {
       firstName: this.firstName,
       url: this.url,
       subject,
@@ -54,12 +58,22 @@ export default class Email {
     const mailOptions = {
       from: this.from,
       to: this.to,
-      subject,
+      subject: subject,
       html,
-      text: convert(html),
+      text: convert(html)
     };
 
-    await this.newTransport().sendMail(mailOptions);
+   
+
+    await this.newTransport().sendMail(mailOptions, (err: any, info: any) => {
+      if (err) {
+        // Todo: The response is successful even if the email is not sent. Fix this byk providing an option to resend the email
+        console.log(err);
+        throw new AppError("There was an error sending the email. Try again later!", 500);
+      } else {
+        console.log(`Email sent: ${info.response}`);
+      }
+    });
   }
 
   async sendSignup() {

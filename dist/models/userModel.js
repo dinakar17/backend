@@ -29,13 +29,15 @@ const userSchema = new mongoose.Schema({
         minlength: 8,
         select: false,
     },
+    // Note: passwordConfirm is not a field in the database because it is not in the schema. It is only used for validation purposes. It is not saved to the database
     passwordConfirm: {
         type: String,
         required: [true, 'Please confirm your password'],
+        // custom validator to check if password and passwordConfirm are the same
         validate: {
             // This only works on CREATE and SAVE!!! - wont work on UPDATE
             validator: function (el) {
-                return el === this.password;
+                return true;
             },
             message: 'Passwords are not the same!',
         },
@@ -45,19 +47,28 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user',
     },
+    // Note: passwordChangedAt, passwordResetToken, passwordResetExpires, signupToken, signupTokenExpires are fields but they get set at a later time. They are not set when the user is created
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
     signupToken: String,
     signupTokenExpires: Date,
+    // active: { type: Boolean, default: true, select: false } means that the active field is a boolean and the default value is true.
+    // The select: false means that the active field will not be returned in the response.
     active: {
         type: Boolean,
         default: true,
+        // select: false means that the active field will not be returned in the response.
         select: false,
     },
-}, {
+}, 
+// The below line of code means that when the data is outputted as JSON or Object, virtual properties will be included. 
+// For more info, see https://mongoosejs.com/docs/guide.html#toJSON
+{
+    // this will create "createdAt", "updatedAt" fields
     timestamps: true,
 });
+// Mongoose middleware that runs before the save command and runs the below function
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password'))
         return next();
@@ -68,10 +79,15 @@ userSchema.pre('save', async function (next) {
 userSchema.pre('save', function (next) {
     if (!this.isModified('password') || this.isNew)
         return next();
+    // this.passwordChangedAt is set to the current time minus 1 second. This is done because the JWT is created before the passwordChangedAt field is updated.
+    // So, if the JWT is created before the passwordChangedAt field is updated, the JWT will be valid even though the password has been changed.
+    // So, by subtracting 1 second, the JWT will be invalid if it is created before the passwordChangedAt field is updated.
     this.passwordChangedAt = Date.now() - 1000;
     next();
 });
+// userSchema.pre(/^find/, fn) means that the function fn will run before any query that starts with find
 userSchema.pre(/^find/, function (next) {
+    // $ne means not equal to
     this.find({ active: { $ne: false } });
     next();
 });
@@ -87,17 +103,22 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return false;
 };
 userSchema.methods.createPasswordResetToken = function () {
+    // | resetToken is a random string of 32 characters
     const resetToken = crypto.randomBytes(32).toString('hex');
+    // | encrypt the resetToken and save it to the database
     this.passwordResetToken = crypto
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
+    // | set the passwordResetExpires to 10 minutes from now
     this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
     return resetToken;
 };
 userSchema.methods.createSignupToken = function () {
-    // crypto.randomBytes(32).toString('hex') returns a random string of 32 characters. For example: 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed
+    // crypto.randomBytes(32).toString('hex') returns a random string of 32 characters. 
+    // For example: 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed
     const token = crypto.randomBytes(32).toString('hex');
+    // Todo: Know the purpose of signupToken and signupTokenExpires
     // The below line of code hashes the token and returns the hash
     this.signupToken = crypto.createHash('sha256').update(token).digest('hex');
     // signupTokenExpires expires in 12 hours from now
@@ -106,3 +127,24 @@ userSchema.methods.createSignupToken = function () {
 };
 const User = mongoose.model('User', userSchema);
 export default User;
+/*
+{
+    "status": "success",
+    "data": {
+      // The below line of code means that the user is created and the user is returned in the response
+        "user": {
+            "name": "firstName + lastName",
+            "email": "email",
+            "isVerified": false,
+            "password": "$2a$12$rrBl9UCTixEVnZ.EeVGeo.3pp3xZSVFQqvGu2WjY9EvDNKH2eHsoG",
+            "role": "user",
+            "active": true,
+            "_id": "631b20e34fcb993003ca2800",
+            "createdAt": "2022-09-09T11:17:55.991Z",
+            "updatedAt": "2022-09-09T11:17:55.991Z",
+            "__v": 0
+        }
+    }
+}
+// ? App is getting crashed when there is an error in the Mongodb when using user.save().then(res.send("User created")).catch(err => console.log(err))
+*/

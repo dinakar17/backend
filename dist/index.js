@@ -1,4 +1,5 @@
 // Entry point for the application
+// Todo: Test all the endpoints using Postman
 import dotenv from 'dotenv';
 import app from './app.js';
 dotenv.config();

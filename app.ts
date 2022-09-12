@@ -16,17 +16,20 @@ import compression from 'compression';
 import globalErrorHandler from './controllers/errorController.js';
 
 import cors from 'cors';
+import bodyParser from 'body-parser';
 
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 import userRouter from './routes/userRoutes.js';
+import blogRouter from './routes/blogRoutes.js';
 
 // direname(fileURLToPath(import.meta.url)) is used to get the current directory path of the file
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // process.on() is a global event handler that is called whenever an uncaught exception occurs
 // This could be a syntax error, a reference error, or any other error that is not handled by the application
+// For example if we try to access a variable that is not defined, we will get an uncaught exception (try to remove export default router from blogRoutes.ts)
 process.on('uncaughtException', (err) => {
   console.log('UNCAUGHT EXCEPTION! Shutting down...');
   console.log(err.name, err.message);
@@ -75,7 +78,13 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // app.use(express.json()) is used to parse incoming requests with JSON payloads
-app.use(express.json({ limit: '50kb' }));
+// Note: https://stackoverflow.com/questions/9177049/express-js-req-body-undefined
+// / app.use(express.json({ limit: '50kb' })); This is deprecated
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
 
 // app.use(mongoSanitize()) is used to sanitize data against NoSQL query injection attacks by removing dollar signs and dots from the request body
 app.use(mongoSanitize());
@@ -92,6 +101,9 @@ app.use(compression());
 // The following routes are used to handle requests to the different endpoints of the application and are defined in the routes folder
 // From here on, head over to the routes folder to see how the routes are defined
 app.use('/api/v1/users', userRouter);
+
+// /api/v1/blogs is the route for doing CRud operations on the blogs
+app.use('/api/v1/blogs', blogRouter);
 
 
 app.get('/', (req: Request, res: Response) => {

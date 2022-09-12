@@ -1,0 +1,176 @@
+// This file contains all the info related to post endpoints of the API. Note that the endpoints are tested on Postman.
+// This file also includes test scripts for the endpoints run on Postman. Ref: https://learning.postman.com/docs/writing-scripts/script-references/test-examples/#getting-started-with-tests
+
+POST - http://localhost:5000/api/v1/users/signup
+
+Test 1: x-www-form-urlencoded format with all the required fields
+
+name:Dinakar
+email:dinakar_b190904ee@nitc.ac.in
+password:1234567890
+passwordConfirm:1234567890
+
+// Test script
+pm.test("Status code is 200", function () {
+  pm.response.to.have.status(200);
+});
+
+
+Expected Output: 
+{
+    "status": "success",
+    "message": "Signup token sent to email!"
+}
+
+List of all errors handled in this endpoint:
+Default: Mongodb error is handled by the global error handler and also sometimes MongoDB itself.
+1. Email already exists
+2. Password and passwordConfirm do not match 
+3. Password length is less than 8 characters
+4. Email is not valid
+5. Name is not valid
+
+{
+    "status": "error",
+    "error": {
+        "index": 0,
+        "code": 11000,
+        "keyPattern": {
+            "email": 1
+        },
+        "keyValue": {
+            "email": "dinakar_b190904ee@nitc.ac.in"
+        },
+        "statusCode": 500,
+        "status": "error"
+    },
+    "message": "E11000 duplicate key error collection: yourdb.users index: email_1 dup key: { email: \"dinakar_b190904ee@nitc.ac.in\" }",
+    "stack": "MongoServerError: E11000 duplicate key error collection: yourdb.users index: email_1 dup key: { email: \"dinakar_b190904ee@nitc.ac.in\" }\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\operations\\insert.js:53:33\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\cmap\\connection_pool.js:299:25\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\sdam\\server.js:212:17\n    at handleOperationResult (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\sdam\\server.js:287:20)\n    at Connection.onMessage (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\cmap\\connection.js:219:9)\n    at MessageStream.<anonymous> (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\cmap\\connection.js:60:60)\n    at MessageStream.emit (node:events:394:28)\n    at processIncomingData (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\cmap\\message_stream.js:132:20)\n    at MessageStream._write (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongodb\\lib\\cmap\\message_stream.js:33:9)\n    at writeOrBuffer (node:internal/streams/writable:389:12)"
+}
+
+If email is not sent, this error is thrown:
+
+{
+    "status": "error",
+    "error": {
+        "statusCode": 500,
+        "status": "error",
+        "isOperational": true
+    },
+    "message": "There was an error sending the email. Try again later!",
+    "stack": "Error: There was an error sending the email. Try again later!\n    
+}
+
+[1] Error: connect ETIMEDOUT 142.251.16.109:465
+[1]     at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1142:16) {
+[1]   errno: -4039,
+[1]   code: 'ESOCKET',
+[1]   syscall: 'connect',
+[1]   address: '142.251.16.109',
+[1]   port: 465,
+[1]   command: 'CONN'
+[1] }
+
+------------------------------------------------
+POST http://localhost:5000/api/v1/users/confirmSignup/4cab42aab198fd4770277d5a0a5baeacbec00cb144e54d2f9eab76f8934cfb40
+
+Error 
+{
+    "status": "fail",
+    "error": {
+        "statusCode": 400,
+        "status": "fail",
+        "isOperational": true
+    },
+    "message": "Token is invalid or has expired",
+    "stack": "Error: Token is invalid or has expired\n    at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/controllers/authController.js:78:21\n    at runMicrotasks (<anonymous>)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)"
+}
+
+
+success
+{
+    "status": "success",
+    "message": "Verification Successful. Please log in to continue"
+}
+
+------------------------------------------------
+POST http://localhost:5000/api/v1/users/login
+
+// if the email doesn't exist
+{
+    "status": "fail",
+    "error": {
+        "statusCode": 401,
+        "status": "fail",
+        "isOperational": true
+    },
+    "message": "Incorrect email or password",
+    "stack": "Error: Incorrect email or password\n    at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/controllers/authController.js:140:21\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)"
+}
+
+Handled by the authController.protect middleware
+{
+    "status": "fail",
+    "error": {
+        "statusCode": 401,
+        "status": "fail",
+        "isOperational": true
+    },
+    "message": "You are not logged in! Please log in to get access.",
+    "stack": "Error: You are not logged in! Please log in to get access.\n    at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/controllers/authController.js:229:21\n    at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/utils/catchAsync.js:5:5\n    at Layer.handle [as handle_request] (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at trim_prefix (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\index.js:328:13)\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\index.js:286:9\n    at Function.process_params (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at Function.handle (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\index.js:175:3)\n    at router (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\index.js:47:12)\n    at Layer.handle [as handle_request] (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)"
+}
+
+
+Success
+
+{
+  "status": "success",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzMWRhMDExODljNWUwM2YwZmY4M2Q1NCIsImlhdCI6MTY2Mjg4NjM5NywiZXhwIjoxNjYyOTcyNzk3fQ.lsfvG6PQx5emJwXE98rNex0cukNxsw-2p0EIJZcqK-0",
+  "data": {
+    "user": {
+      "_id": "631da01189c5e03f0ff83d54",
+      "name": "Dinakar",
+      "email": "dinakarchennupati777@gmail.com",
+      "createdAt": "2022-09-11T08:45:05.754Z",
+      "updatedAt": "2022-09-11T08:47:18.998Z",
+      "__v": 0
+    }
+  }
+}
+
+{
+    cookie:{
+        httpOnly:true,
+        secure:true,
+        expires: Mon 12 Sep 2022 08:53:17 GMT,
+        name: jwt,
+        path: /,
+        value: edlsfkjdsal;jf;sldajflsdajflsadjf;lsajdf;lsdkj
+    }
+}
+
+---------------------------------------------------------------------------------------
+GET /api/v1/blogs/
+{
+    "status": "error",
+    "error": {
+        "originalStack": "Error\n    at model.Query._wrappedThunk [as _find] (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongoose\\lib\\helpers\\query\\wrapThunk.js:27:28)\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\kareem\\index.js:334:18\n    at _next (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\kareem\\index.js:128:16)\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\kareem\\index.js:555:30\n    at processTicksAndRejections (node:internal/process/task_queues:78:11)",
+        "statusCode": 500,
+        "status": "error"
+    },
+    "message": "Query was already executed: Blog.find({})",
+    "stack": "MongooseError: Query was already executed: Blog.find({})\n    at model.Query._wrappedThunk [as _find] (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\mongoose\\lib\\helpers\\query\\wrapThunk.js:23:19)\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\kareem\\index.js:334:18\n    at _next (C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\kareem\\index.js:128:16)\n    at C:\\Users\\Dinakar\\Documents\\NITC Blogs\\backend\\node_modules\\kareem\\index.js:555:30\n    at processTicksAndRejections (node:internal/process/task_queues:78:11)"
+}
+
+DELETE /api/v1/blogs/:id
+{
+    "status": "error",
+    "error": {
+        "statusCode": 500,
+        "status": "error"
+    },
+    "message": "Cannot read property 'user' of null",
+    "stack": "TypeError: Cannot read property 'user' of null\n    at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/controllers/authController.js:293:14\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)"
+}
+
+"message": "Unexpected token m in JSON at position 381",
