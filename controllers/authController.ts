@@ -35,7 +35,7 @@ const createSendSignupToken = async (
   // | Step 4: Send the signupToken to the user's email address and a new request is sent (if users clicks) to the endpoint /auth/confirmSignup/:token. Head over to this point to see what happens next
   const signupURL = `${process.env.CLIENT_URL}/auth/confirmSignup/${signupToken}`;
   try {
-    let email = new Email(user, signupURL)
+    let email = new Email(user, signupURL);
     await email.sendSignup();
 
     // | Step 5: If everything goes well send the response to the client
@@ -70,8 +70,13 @@ export const signup = catchAsync(async (req, res, next) => {
   // await doc.save(); https://masteringjs.io/tutorials/mongoose/create
   console.log(req.body);
   // Note: req.body is x-www-form-urlencoded data not form-data
+  const oldUser = await User.findOne({ email: req.body.email });
 
-  // | Step 1: A new user document is created and saved to the database
+  if (oldUser) {
+    return next(new AppError("User already exists!", 400));
+  }
+
+  // | Step 1: A new user document is created and saved to the
   const user: HydratedDocument<IUser> = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -83,17 +88,17 @@ export const signup = catchAsync(async (req, res, next) => {
   createSendSignupToken(user, req, res, next);
 });
 
-// * Resend Signup Token 
+// * Resend Signup Token
 export const resendSignupToken = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
-    return next(new AppError('There is no user with this email address.', 404));
+    return next(new AppError("There is no user with this email address.", 404));
   }
 
   if (user.isVerified) {
     return next(
       new AppError(
-        'Your account is already verified. Please login to continue',
+        "Your account is already verified. Please login to continue",
         400
       )
     );
@@ -102,15 +107,15 @@ export const resendSignupToken = catchAsync(async (req, res, next) => {
   createSendSignupToken(user, req, res, next);
 });
 
-// * Confirm Signup 
+// * Confirm Signup
 export const confirmSignup = catchAsync(async (req, res, next) => {
   // | Step 1: Get the signupToken from the request params and hash it to match the signupToken in the database
   const hashedToken = crypto
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
-  
-    console.log(hashedToken); // 2879a56fe791acb79f5098bb8ce4ded3df58bfcc63384730cd6452ac4574da43
+
+  console.log(hashedToken); // 2879a56fe791acb79f5098bb8ce4ded3df58bfcc63384730cd6452ac4574da43
 
   // let user;
 
@@ -131,7 +136,7 @@ export const confirmSignup = catchAsync(async (req, res, next) => {
 
   // | Step 3: If the user document is not found, send the error to the client (this error is handled by the globalErrorHandler middleware in the errorController.ts file)
   if (!user) {
-    return next(new AppError("Token is invalid or has expired", 400));
+    return next(new AppError("Invalid token. Please signup again!", 400));
   }
 
   // | Step 4: If the user document is found, set the isVerified property to true and delete the signupToken and signupTokenExpires properties from the user document
@@ -147,13 +152,17 @@ export const confirmSignup = catchAsync(async (req, res, next) => {
   // | Step 6: Send the response to the client and now head over to the 'api/v1/auth/login' endpoint to see what happens next
   res.status(200).json({
     status: "success",
-    message: "Verification Successful. Please login to continue",
+    message:
+      "Your account has been successfully created! Please login to continue",
   });
 });
 
-// * Sign In 
-
+// * Sign In
+// Ref: https://stackoverflow.com/questions/34724448/json-web-token-expiration-time-not-clear
+// https://www.reddit.com/r/Nestjs_framework/comments/oujxe1/difference_between_cookie_expiration_date_and/
+//  https://jwt.io/introduction
 const signToken = (id: Types.ObjectId) =>
+  // Note: Here payload is the id of the user document
   jwt.sign({ id }, process.env.JWT_SECRET, {
     // expiresIn indicates the time after which the token will expire (in this case 1 day)
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -214,13 +223,26 @@ export const login = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email }).select("+password");
 
   // | Step 4: If the user is not found or the password is incorrect, send the error to the client (this error is handled by the globalErrorHandler middleware in the errorController.ts file)
-  if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError("Incorrect email or password", 401));
+  // If user doesn't exist then send the error "User doesn't exist. Please signup to continue" to the client
+  if (!user) {
+    return next(
+      new AppError("User doesn't exist. Please signup to continue", 400)
+    );
   }
+
+  // if user exists then check if the password is correct
+  if (!(await user.correctPassword(password, user.password))) {
+    return next(new AppError("Incorrect password", 401));
+  }
+
+  // if (!user || !(await user.correctPassword(password, user.password))) {
+  //   return next(new AppError("Incorrect email or password", 401));
+  // }
 
   //if user tries to login without verification allow user to resend the verification token
   // | Step 5: if the user is not verified, send the error the client i.e., response - { status: 'error', message: 'Please verify your email address' }
   if (!user.isVerified)
+    // Todo: Deal with this later
     return next(
       new AppError(
         "Your account has not been verified. Please verify account to login",
@@ -232,7 +254,7 @@ export const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-// * Forgot Password 
+// * Forgot Password
 export const forgotPassword = catchAsync(async (req, res, next) => {
   // | Step 1: Get the email from the request body
   const user = await User.findOne({ email: req.body.email });
@@ -286,7 +308,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-// * Reset Password 
+// * Reset Password
 export const resetPassword = catchAsync(async (req, res, next) => {
   // | Step 1: Get the token from the request params and create a hashed token
   const hashedToken = crypto
@@ -337,7 +359,7 @@ export const protect = catchAsync(async (req, res, next) => {
   }
 
   // | Step 2: If the token is not found, send the error to the client
-  if (!token) { 
+  if (!token) {
     return next(
       new AppError("You are not logged in! Please log in to get access.", 401)
     );
@@ -405,7 +427,7 @@ export const restrictToSelf = (model: string) =>
     // | Step 9: Find the document with the id in the request params
     const doc = await Model.findById(req.params.id);
 
-    // Note: If the we're trying to delete a blog post which is already deleted, then an error is thrown by 
+    // Note: If the we're trying to delete a blog post which is already deleted, then an error is thrown by
     // | Step 10: If the document is not found, send the error to the client
     if (!doc.user._id.equals(req.user._id)) {
       return next(

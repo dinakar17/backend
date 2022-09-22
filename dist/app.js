@@ -18,7 +18,7 @@ import userRouter from './routes/userRoutes.js';
 import blogRouter from './routes/blogRoutes.js';
 // direname(fileURLToPath(import.meta.url)) is used to get the current directory path of the file
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// process.on() is a global event handler that is called whenever an uncaught exception occurs
+// process.on() is a global event handler that is called whenever an uncaught exception occursinfo
 // This could be a syntax error, a reference error, or any other error that is not handled by the application
 // For example if we try to access a variable that is not defined, we will get an uncaught exception (try to remove export default router from blogRoutes.ts)
 process.on('uncaughtException', (err) => {

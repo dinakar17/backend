@@ -12,6 +12,7 @@ const handleDuplicateFieldsDB = (err) => {
 const handleJWTError = () => new AppError('Invalid token. Please log in again!', 401);
 const handleJWTExpiredError = () => new AppError('Your token has expired! Please log in again.', 401);
 const handleValidationErrorDB = (err) => {
+    // Todo: Know more about this type of error object
     const errors = Object.values(err.errors).map((el) => el.message);
     const message = `Invalid input data. ${errors.join('. ')}`;
     return new AppError(message, 400);
@@ -46,11 +47,14 @@ const sendErrorProd = (err, res) => {
 export default (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'production') { // Todo: Change this to development
         sendErrorDev(err, res);
     }
-    else if (process.env.NODE_ENV === 'production') {
+    else if (process.env.NODE_ENV === 'development') { // Todo: Change this to production when deploying to production
+        // Object.assign(err, {}) means that we are creating a new object with the properties of err and {}. 
         let error = Object.assign(err, {});
+        // console.log(error.statusCode, error.status, error.message, error.isOperational, error.stack, error.name);
+        console.log(error, error.name);
         if (error.name === 'CastError')
             error = handleCastErrorDB(error);
         if (error.code === 11000)

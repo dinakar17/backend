@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema<IUser>(
       validate: {
         // This only works on CREATE and SAVE!!! - wont work on UPDATE
         validator: function (el: String): boolean  {
-          return true;
+          return el === this.password;
         },
         message: 'Passwords are not the same!',
       },
@@ -166,6 +166,7 @@ userSchema.methods.createSignupToken = function () {
   this.signupToken = crypto.createHash('sha256').update(token).digest('hex');
 
   // signupTokenExpires expires in 12 hours from now
+  // Here 12 hours is converted to milliseconds i.e., 12 x 60 minutes x 60 seconds x 1000 milliseconds
   this.signupTokenExpires = Date.now() + 12 * 60 * 60 * 1000;
 
   return token;

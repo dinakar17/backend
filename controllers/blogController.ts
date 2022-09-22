@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import mongoose from "mongoose";
-import Blog from "../models/blogModel.js";
+import mongoose, { HydratedDocument } from "mongoose";
+import Blog, { IBlog } from "../models/blogModel.js";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 import filterObj from "../utils/filterObj.js";
@@ -31,7 +31,8 @@ export const filterCreate = (
     "branch",
     "tags",
     "content",
-    "user"
+    "user",
+    "draft"
   );
   // | Head over to createOne function in handleFactory.ts
   next();
@@ -114,14 +115,17 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
   const { page } = req.query;
 
   try {
-    const LIMIT = 4;
+    const LIMIT = 20;
     const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
 
-    const total = await Blog.countDocuments({});
+    const total = await Blog.countDocuments({ draft: false, reviewed: true }); // get the total number of blogs
     // select only the title, description, featuredImage, slug, createdAt, updatedAt, branch, tags, user from the blog document
     // Here sort({ createdAt: -1 }) is used to sort the blogs in descending order based on the createdAt field i.e., new blogs will be shown first
     // skip(startIndex) is used to skip the blogs that are already shown in the previous pages
-    const blogs = await Blog.find()
+
+    // Note: Do not select blogs whose field "draft" is true and "reviewed" is false
+
+    const blogs = await Blog.find({ draft: false, reviewed: true })
       .sort({ createdAt: -1 })
       .limit(LIMIT)
       .skip(startIndex)
@@ -142,6 +146,26 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
   }
 });
 
+export const getLatestBlogs = catchAsync(async (req, res, next) => {
+  try {
+    const LIMIT = 5;
+    const blogs = await Blog.find({ draft: false, reviewed: true })
+      .sort({ createdAt: -1 })
+      .limit(LIMIT)
+      .select(
+        "title description featuredImage slug createdAt updatedAt branch tags user"
+      );
+    const currentBlogsCount = blogs.length;
+
+    res.status(200).json({
+      data: blogs,
+      currentBlogsCount,
+    });
+  } catch (error: any) {
+    res.status(404).json({ message: error.message });
+  }
+});
+
 // export const likePost = async (req: Request, res: Response) => {
 //   const { id } = req.params;
 
@@ -150,7 +174,7 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
 //     }
 
 //   if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
-  
+
 //   const post = await Blog.findById(id);
 
 //   const index = post.likes.findIndex((id) => id ===String(req.userId));
@@ -165,3 +189,92 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
 
 //   res.status(200).json(updatedPost);
 // }
+
+export const searchBlogs = catchAsync(async (req, res, next) => {
+  const { searchQuery, tags, page } = req.query;
+  // https://stackoverflow.com/questions/58485932/mongoose-search-multiple-fields
+  // https://stackoverflow.com/questions/28775051/best-way-to-perform-a-full-text-search-in-mongodb-and-mongoose
+  // https://www.mongodb.com/docs/manual/core/index-text/
+  // Todo: Search based on title, description and tags of the blog and Filter based on branch and tags of the Blog
+  let query;
+  if(req.query.searchQuery && req.query.tags) {
+    query = { $text: { $search: searchQuery }, tags: { $in: tags.split(',') } };
+  } else if(req.query.searchQuery) {
+    query = { $text: { $search: searchQuery } };
+  } else if (req.query.tags) {
+    query = { tags: { $in: tags.split(',') } };
+  } else {
+    query = {};
+  }
+  try {
+    // search based on title and tags of the blog and return first 20 blogs for first page
+    const LIMIT = 20;
+    const startIndex = (Number(page) - 1) * LIMIT;
+
+    const total = await Blog.countDocuments({
+      $or: [
+        { title: { $regex: searchQuery, $options: "i" } },
+        { tags: { $regex: searchQuery, $options: "i" } },
+      ],
+    });
+    const blogs = await Blog.find({
+      $or: [
+        { title: { $regex: searchQuery, $options: "i" } },
+        { tags: { $regex: searchQuery, $options: "i" } },
+      ],
+    })
+      .sort({ createdAt: -1 })
+      .limit(LIMIT)
+      .skip(startIndex)
+      .select(
+        "title description featuredImage slug createdAt updatedAt branch tags user"
+      );
+    const currentBlogsCount = blogs.length;
+
+    res.json({
+      data: blogs,
+      currentPage: Number(page),
+      numberOfPages: Math.ceil(total / LIMIT),
+      totalBlogs: total,
+      currentBlogsCount,
+    });
+  } catch (error: any) {
+    res.status(404).json({ message: error.message });
+  }
+});
+
+// Unable to use createAsync(req, res, next)
+export const likeBlog = async (req: Request, res: Response) => {
+  // | Step 1: Get the blog id from the request params
+  const { id } = req.params;
+
+  // | Step 2: Check if the user is authenticated or not and if not then throw an error
+  if (!req.user) {
+    return res.json({ message: "Unauthenticated" });
+  }
+
+  // | Step 3: Check if the blog id is valid or not and if not then throw an error
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return res.status(404).send(`No post with id: ${id}`);
+
+  // | Step 4: Get the blog from the database
+  const blog = (await Blog.findById(id)) as HydratedDocument<IBlog, IBlog>;
+
+  // | Step 5: Check if the user has already liked the blog or not.
+  // Here blog.likes is an array of user ids and req.user.id is the id of the user who is currently logged in
+  const index = blog.likes.findIndex((id) => id === String(req.user._id));
+
+  // | Step 6: If the user has not liked the blog then add the user id to the likes array of the blog
+  if (index === -1) {
+    blog.likes.push(req.user);
+  } else {
+    // | Step 7: If the user has already liked the blog then remove the user id from the likes array of the blog
+    blog.likes = blog.likes.filter((id) => id !== String(req.user._id));
+  }
+
+  // | Step 8: Update the blog in the database
+  const updatedBlog = await Blog.findByIdAndUpdate(id, blog, { new: true });
+
+  // | Step 9: Send the updated blog as a response
+  return res.status(200).json(updatedBlog);
+};

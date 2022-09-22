@@ -13,6 +13,7 @@ declare module 'validator';
 declare module 'nodemailer';
 declare module 'pug';
 declare module 'html-to-text';
+declare module 'nodemailer-sendgrid';
 
 // ? Resolve this error
 // Error 1: Cannot find module 'helmet'. Did you mean to set the 'moduleResolution' option to 'node', or to add aliases to the 'paths' option?

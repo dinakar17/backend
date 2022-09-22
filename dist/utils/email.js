@@ -3,7 +3,10 @@ import pug from "pug";
 import { convert } from "html-to-text";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import AppError from "./appError.js";
+import nodemailerSendgrid from "nodemailer-sendgrid";
+const sendgridLogic = nodemailerSendgrid({
+    apiKey: process.env.SENDGRID_API_KEY,
+});
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export default class Email {
     to;
@@ -11,24 +14,24 @@ export default class Email {
     // Here url = ${process.env.CLIENT_URL}/auth/confirmSignup/${signupToken} for signup
     url;
     from;
+    // res: Response;
+    // next: NextFunction;
     constructor(user, url) {
         this.to = user.email;
         this.firstName = user.name.split(" ")[0];
         this.url = url;
         this.from = `Blog App <${process.env.EMAIL_FROM}>`;
+        // this.res = res;
+        // this.next = next;
     }
     newTransport() {
         // if the app is in production, we use sendgrid to send emails
         // use sendgrid instead of gmail. Ref: https://midnightgamer.medium.com/how-to-use-sendgrid-with-nodemailer-to-send-mails-a289f30af622
-        // if (process.env.NODE_ENV === "production") {
-        //   return nodemailer.createTransport({
-        //     service: "SendGrid",
-        //     auth: {
-        //       user: process.env.SENDGRID_USERNAME,
-        //       pass: process.env.SENDGRID_PASSWORD,
-        //     },
-        //   });
-        // }
+        if (process.env.NODE_ENV === "development") { // Todo: Change this to production
+            return nodemailer.createTransport(nodemailerSendgrid({
+                apiKey: process.env.SENDGRID_API_KEY,
+            }));
+        }
         // console.log("Reached to newTransport function");
         return nodemailer.createTransport({
             service: "gmail",
@@ -50,13 +53,13 @@ export default class Email {
             to: this.to,
             subject: subject,
             html,
-            text: convert(html)
+            text: convert(html),
         };
-        await this.newTransport().sendMail(mailOptions, (err, info) => {
+        await this.newTransport().sendMail(mailOptions, async (err, info) => {
             if (err) {
                 // Todo: The response is successful even if the email is not sent. Fix this byk providing an option to resend the email
                 console.log(err);
-                throw new AppError("There was an error sending the email. Try again later!", 500);
+                // return this.next(new AppError("There was an error sending the email. Try again later!", 500));
             }
             else {
                 console.log(`Email sent: ${info.response}`);

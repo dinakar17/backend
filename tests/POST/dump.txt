@@ -1,0 +1,29 @@
+Error: User validation failed: passwordConfirm: Passwords are not the same!
+[1]     at ValidationError.inspect (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\mongoose\lib\error\validation.js:49:26)
+[1]     at formatValue (node:internal/util/inspect:761:19)
+[1]     at inspect (node:internal/util/inspect:338:10)
+[1]     at formatWithOptionsInternal (node:internal/util/inspect:2004:40)
+[1]     at formatWithOptions (node:internal/util/inspect:1886:10)
+[1]     at console.value (node:internal/console/constructor:327:14)
+[1]     at console.log (node:internal/console/constructor:363:61)
+[1]     at default (file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/controllers/errorController.js:56:17)
+[1]     at Layer.handle_error (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\express\lib\router\layer.js:71:5)
+[1]     at trim_prefix (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\express\lib\router\index.js:326:13) {
+[1]   errors: {
+[1]     passwordConfirm: ValidatorError: Passwords are not the same!
+[1]         at validate (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\mongoose\lib\schematype.js:1346:13)
+[1]         at SchemaString.SchemaType.doValidate (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\mongoose\lib\schematype.js:1330:7)     
+[1]         at C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\mongoose\lib\document.js:2834:18
+[1]         at processTicksAndRejections (node:internal/process/task_queues:78:11) {
+[1]       properties: [Object],
+[1]       kind: 'user defined',
+[1]       path: 'passwordConfirm',
+[1]       value: '1234567890',
+[1]       reason: undefined,
+[1]       [Symbol(mongoose:validatorError)]: true
+[1]     }
+[1]   },
+[1]   _message: 'User validation failed',
+[1]   statusCode: 500,
+[1]   status: 'error'
+[1] }

@@ -1,19 +1,22 @@
 import mongoose from 'mongoose';
 import slugify from 'slugify';
 
-// Example of blogSchema:
-//   {
-//     _id: '5f9f1b9b9c9b9c9b9c9b9c9b',
-//     title: 'Blog Title',
-//     description: 'Blog Description',
-//   slug: 'blog-title',
-//     blogData: 'Blog Data',
-//     user: '5f9f1b9b9c9b9c9b9c9b9c9b',
-//    createdAt: '2020-11-01T10:00:00.000Z',
-//     updatedAt: '2020-11-01T10:00:00.000Z',
-//     __v: 0
-//   }
-const blogSchema = new mongoose.Schema(
+export type IBlog = mongoose.Document & {
+  title: string;
+  description: string;
+  slug: string;
+  featuredImage: string;
+  branch: string;
+  tags: string[];
+  likes: string[];
+  content: string;
+  user: mongoose.Schema.Types.ObjectId;
+  createdAt: string;
+  updatedAt: string;
+  draft: boolean;
+  reviewed: boolean;
+};
+const blogSchema = new mongoose.Schema<IBlog>(
   {
     title: {
       type: String,
@@ -48,11 +51,22 @@ const blogSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Must have content!'],
     },
+    likes: {
+      type: [String],
+      default: [],
+    },
     user: {
-      type: mongoose.SchemaTypes.ObjectId,
-      // Here ref is the reference to the user model. This is used to populate the user field with the user data when the blog is fetched.
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Blog must belong to a user'],
+      required: [true, 'Must have user!'],
+    },
+    draft: {
+      type: Boolean,
+      default: false,
+    },
+    reviewed: {
+      type: Boolean,
+      default: false,
     },
   },
   // timestamps, toJSON, and toObject are used to add createdAt and updatedAt fields to the schema
@@ -89,6 +103,6 @@ blogSchema.pre(/^find/, function (next) {
 });
 
 // mongoose.model("Blog", blogSchema) is used to create a new model called Blog
-const Blog = mongoose.model('Blog', blogSchema);
+const Blog = mongoose.model<IBlog>('Blog', blogSchema);
 
 export default Blog;

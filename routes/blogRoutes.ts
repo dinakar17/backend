@@ -18,6 +18,8 @@ router
     blogController.createBlog
   );
 
+router.route("/latest").get(blogController.getLatestBlogs);
+
 router.route("/slug/:slug").get(blogController.getBlogBySlug);
 
 router
@@ -34,5 +36,12 @@ router
     authController.restrictToSelf("blog"),
     blogController.deleteBlog
   );
+
+
+// Search based on title, description and tags of the blog and Filter based on branch and tags of the blog
+router.route("/search").get(blogController.searchBlogs);
+
+// Like a blog
+router.route("/like/:id").patch(authController.protect, blogController.likeBlog);
 
 export default router;

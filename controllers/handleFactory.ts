@@ -9,9 +9,11 @@ import catchAsync from "../utils/catchAsync.js";
 export const createOne = (Model: mongoose.Model<any, {}>) =>
   catchAsync(async (req, res, next) => {
     // | Step 10: create a new document in the database
-    // Todo: req.body.tags is an array of strings. We need to convert it to an array of objects. For example, if req.body.tags = ["hello", "world"], then we need to convert it to [{name: "hello"}, {name: "world"}]\
-    // convert "['hello', 'world']" to ['hello', 'world']
-    req.body.tags = req.body.tags.replace(/'/g, '"');
+    console.log(req.body);
+    if (req.body.tags) {
+      req.body.tags = JSON.parse(req.body.tags);
+    }
+
     const doc = await Model.create(req.body);
 
     // The below response will look like this:
@@ -21,10 +23,10 @@ export const createOne = (Model: mongoose.Model<any, {}>) =>
     // }
     // | Step 11: Finally, send the response to the client
     res.status(201).json({
-      status: 'success',
+      status: "success",
       data: doc,
     });
-});
+  });
 
 export const updateOne = (Model: mongoose.Model<any, {}>) =>
   catchAsync(async (req, res, next) => {
@@ -36,34 +38,33 @@ export const updateOne = (Model: mongoose.Model<any, {}>) =>
 
     // | Step 13: If the document is not found, then throw an error
     if (!doc) {
-      return next(new AppError('No document found with that ID', 404));
+      return next(new AppError("No document found with that ID", 404));
     }
 
-    // | Step 14: Finally, send the response to the client 
+    // | Step 14: Finally, send the response to the client
     // response - { "status": "success", "data": doc }
     res.status(200).json({
-      status: 'success',
+      status: "success",
       data: doc,
     });
   });
 
-  export const deleteOne = (Model: mongoose.Model<any, {}>) =>
+export const deleteOne = (Model: mongoose.Model<any, {}>) =>
   catchAsync(async (req, res, next) => {
     // | Step 1: delete the document in the database
     const doc = await Model.findByIdAndDelete(req.params.id);
 
     // | Step 2: If the document is not found, then throw an error
     if (!doc) {
-      return next(new AppError('No document found with that ID', 404));
+      return next(new AppError("No document found with that ID", 404));
     }
     // | Step 3: Finally, send the response to the client
     // Note status:204 means that the request was successful but there is no content to send back to the client
     res.status(201).json({
-      status: 'success',
+      status: "success",
       data: null,
     });
-});
-
+  });
 
 // // GET /api/v1/blogs?limit=20&fields=title,description,featuredImage,tags,branch,slug,createdAt,updatedAt&page=1
 // export const getAll = (Model: mongoose.Model<any, {}>) =>
@@ -85,7 +86,7 @@ export const updateOne = (Model: mongoose.Model<any, {}>) =>
 
 //     // | Step 3: paginate the documents
 //     const features = basicFeatures.paginate();
-    
+
 //     // doc is used to get only the blogs that are to be displayed on the page
 //     // | Step 4: Get the documents from the database
 //     const doc = await features.query;
@@ -107,7 +108,7 @@ export const updateOne = (Model: mongoose.Model<any, {}>) =>
 //     //     },
 //     //     ],
 //     //   "totalResults": 2
-//     //   }  
+//     //   }
 //     // | Step 5: Finally, send the response to the client
 //     res.status(200).json({
 //       status: 'success',

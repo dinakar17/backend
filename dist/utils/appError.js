@@ -5,7 +5,7 @@ class AppError extends Error {
     status;
     isOperational;
     constructor(message, statusCode) {
-        // super(message) is used to call the constructor of the parent class Error
+        // Since every error has a message property here we're calling the parent constructor and passing in the message
         super(message);
         this.statusCode = statusCode;
         this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
