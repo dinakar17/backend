@@ -1,10 +1,11 @@
-"use strict";
 // import mongoose from 'mongoose';
-// import User from '../models/userModel.js';
+import User from "../models/userModel.js";
 // import Comment from '../models/commentModel.js';
-// import Blog from '../models/blogModel.js';
+import Blog from "../models/blogModel.js";
 // import AppError from '../utils/appError.js';
-// import catchAsync from '../utils/catchAsync.js';
+import catchAsync from "../utils/catchAsync.js";
+// Note: Take caution while dealing with relative and absolute paths
+import AppError from "../utils/appError.js";
 // import * as factory from './handlerFactory.js';
 // import filterObj from '../utils/filterObj.js';
 // import cloudinary from '../utils/cloudinary.js';
@@ -49,19 +50,72 @@
 //     },
 //   });
 // });
-// export const getMe = catchAsync(async (req, res, next) => {
-//   const query = User.findById(req.user.id).select(['-role', '-isVerified']);
-//   // if (popOptions) query = query.populate(popOptions);
-//   const doc = await query;
-//   const blogCount = await Blog.countDocuments({ user: doc._id });
-//   if (!doc) {
-//     return next(new AppError('No document found with that ID', 404));
-//   }
-//   res.status(200).json({
-//     status: 'success',
-//     data: { ...doc._doc, blogCount: blogCount },
-//   });
-// });
+export const getProfile = catchAsync(async (req, res, next) => {
+    // .select['-role', '-isVerified'] is used to exclude the role and isVerified fields from the response
+    // select only the name, photo, email fields
+    // @ts-ignore
+    const page = req.query.page * 1 || 1;
+    // @ts-ignore
+    const user = await User.findById(req.user._id).select("name photo email bio");
+    // const user = await User.findById(req.user.id).select(['-role', '-isVerified']);
+    if (!user) {
+        return next(new AppError("No user found with that ID", 404));
+    }
+    // fetch blogs written by the user
+    // user: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'User',
+    //   required: [true, 'Must have user!'],
+    // },
+    const LIMIT = 5;
+    // @ts-ignore
+    const totalBlogs = await Blog.countDocuments({ user: req.user._id });
+    // @ts-ignore
+    const blogs = await Blog.find({ user: req.user._id })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * LIMIT)
+        .limit(LIMIT)
+        .select("title description featuredImage slug createdAt updatedAt branch tags user");
+    res.status(200).json({
+        status: "success",
+        data: {
+            user,
+            blogs,
+            totalBlogs,
+            blogsCount: blogs.length,
+        },
+    });
+});
+export const getEditProfile = catchAsync(async (req, res, next) => {
+    // @ts-ignore
+    const user = await User.findById(req.user._id).select("name photo email bio");
+    if (!user) {
+        return next(new AppError("No user found with that ID", 404));
+    }
+    res.status(200).json({
+        status: "success",
+        data: {
+            user,
+        },
+    });
+});
+export const updateProfile = catchAsync(async (req, res, next) => {
+    // Todo: Filter out unwanted fields that are not allowed to be updated
+    // @ts-ignore
+    const user = await User.findByIdAndUpdate(req.user._id, req.body, {
+        new: true,
+        runValidators: true,
+    }).select("name photo email bio");
+    if (!user) {
+        return next(new AppError("No user found with that ID", 404));
+    }
+    res.status(200).json({
+        status: "success",
+        data: {
+            user,
+        },
+    });
+});
 // export const deleteMe = catchAsync(async (req, res, next) => {
 //   await User.findByIdAndUpdate(req.user.id, { active: false });
 //   res.status(204).json({

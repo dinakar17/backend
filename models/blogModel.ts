@@ -7,6 +7,8 @@ export type IBlog = mongoose.Document & {
   slug: string;
   featuredImage: string;
   branch: string;
+  semester: string;
+  subject: string;
   tags: string[];
   likes: string[];
   content: string;
@@ -26,6 +28,8 @@ const blogSchema = new mongoose.Schema<IBlog>(
     description: { type: String, default: '' },
     featuredImage: { type: String, default: '' },
     branch: { type: String, default: '' },
+    semester: { type: String, default: '' },
+    subject: { type: String, default: '' },
     tags: { type: [String], default: [] },
     slug: String,
     // blogData: {
@@ -76,6 +80,10 @@ const blogSchema = new mongoose.Schema<IBlog>(
     toObject: { virtuals: true },
   }
 );
+
+// blogSchema.index({name: "text", "title": "text"}) means that we can search for blogs by title.
+blogSchema.index({name: "text", "title": "text"})
+
 // blogSchema.virtual('comment', {}) is used to add a virtual field to the schema (Future feature)
 // blogSchema.virtual('comment', {
 //   ref: 'Comment',
