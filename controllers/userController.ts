@@ -126,7 +126,8 @@ export const updateProfile = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.user._id, req.body, {
     new: true,
     runValidators: true,
-  }).select("name photo email bio");
+  })
+  .select(['-password', '-role', '-isVerified']);
 
   if (!user) {
     return next(new AppError("No user found with that ID", 404));

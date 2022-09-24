@@ -254,7 +254,7 @@ export const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-// * Forgot Password
+// * Forgot Password 
 export const forgotPassword = catchAsync(async (req, res, next) => {
   // | Step 1: Get the email from the request body
   const user = await User.findOne({ email: req.body.email });
