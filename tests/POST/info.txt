@@ -286,3 +286,79 @@ DELETE /api/v1/blogs/:id
 }
 
 "message": "Unexpected token m in JSON at position 381",
+
+
+// -------------------------- Temporary ----------------------------------- //
+[1] TokenExpiredError: jwt expired
+[1]     at C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\jsonwebtoken\verify.js:152:21
+[1]     at getSecret (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\jsonwebtoken\verify.js:90:14)
+[1]     at module.exports (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\jsonwebtoken\verify.js:94:10)
+[1]     at node:internal/util:363:7
+[1]     at new Promise (<anonymous>)
+[1]     at node:internal/util:349:12
+[1]     at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/controllers/authController.js:267:48
+[1]     at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/utils/catchAsync.js:8:5
+[1]     at Layer.handle [as handle_request] (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\express\lib\router\layer.js:95:5)
+[1]     at trim_prefix (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\express\lib\router\index.js:328:13) {
+[1]   expiredAt: 2022-09-24T17:26:37.000Z,
+[1]   statusCode: 500,
+[1]   status: 'error'
+[1] } TokenExpiredError
+[1] GET /api/v1/users/editProfile 401 302.870 ms - 74
+[1] TokenExpiredError: jwt expired
+[1]     at C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\jsonwebtoken\verify.js:152:21
+[1]     at getSecret (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\jsonwebtoken\verify.js:90:14)
+[1]     at module.exports (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\jsonwebtoken\verify.js:94:10)
+[1]     at node:internal/util:363:7
+[1]     at new Promise (<anonymous>)
+[1]     at node:internal/util:349:12
+[1]     at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/controllers/authController.js:267:48
+[1]     at file:///C:/Users/Dinakar/Documents/NITC%20Blogs/backend/dist/utils/catchAsync.js:8:5
+[1]     at Layer.handle [as handle_request] (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\express\lib\router\layer.js:95:5)
+[1]     at trim_prefix (C:\Users\Dinakar\Documents\NITC Blogs\backend\node_modules\express\lib\router\index.js:328:13) {
+[1]   expiredAt: 2022-09-24T17:26:37.000Z,
+[1]   statusCode: 500,
+[1]   status: 'error'
+[1] } TokenExpiredError
+
+
+POST /api/v1/blogs/
+
+201 Response
+
+{
+    "status": "success",
+    "data": {
+        "title": "This is a test blog to test",
+        "description": "This is a sample test description",
+        "featuredImage": "http://localhost:5001/uploads/nature.jpg",
+        "branch": {
+            "value": "eee",
+            "label": "electrical engineering"
+        },
+        "semester": {
+            "value": "1",
+            "label": "1st semester"
+        },
+        "subject": {
+            "value": "machines_1",
+            "label": "Electrical Machines"
+        },
+        "tags": [
+            "Apple",
+            "Cherry",
+            "Banana"
+        ],
+        "content": "<p \"default\"> Cofee's </p>",
+        "likes": [],
+        "user": "632461d1416122fc5212c05b",
+        "draft": true,
+        "reviewed": false,
+        "_id": "6331ee2e6e3af79811e04a6c",
+        "createdAt": "2022-09-26T18:23:42.707Z",
+        "updatedAt": "2022-09-26T18:23:42.707Z",
+        "slug": "this-is-a-test-blog-to-test",
+        "__v": 0,
+        "id": "6331ee2e6e3af79811e04a6c"
+    }
+}

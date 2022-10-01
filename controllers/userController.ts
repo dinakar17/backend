@@ -80,7 +80,7 @@ export const getProfile = catchAsync(async (req, res, next) => {
   //   ref: 'User',
   //   required: [true, 'Must have user!'],
   // },
-  const LIMIT = 5;
+  const LIMIT = 8;
 
   // @ts-ignore
   const totalBlogs = await Blog.countDocuments({ user: req.user._id });

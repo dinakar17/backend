@@ -59,13 +59,53 @@ export const getBlogBySlug = catchAsync(async (req, res, next) => {
   if (!doc) {
     return next(new AppError("No document found with that ID", 404));
   }
+  let relatedBlogs;
 
-  // | Step 4: Send the response to the client with the document
+  // | Step 4: Get relevant blogs based on the current blog's branch
+  relatedBlogs = await Blog.find({
+    draft: false,
+    reviewed: true,
+    $and: [{ branch: doc.branch }, { _id: { $ne: doc._id } }],
+  })
+    .limit(4)
+    .select("title slug user createdAt");
+
+  // if no relevant blogs are found, then get random blogs which are reviewed and not draft
+  // | Step 5: If no relevant blogs are found, then get random blogs which are reviewed and not draft
+  if (relatedBlogs.length === 0) {
+    relatedBlogs = await Blog.aggregate([
+      { $match: { draft: false, reviewed: true } },
+      { $sample: { size: 4 } },
+      {
+        // only look up the user with the user id matching the user field in the blogs collection
+
+        $lookup: {
+          from: "users",
+          localField: "user",
+          // foreignField is used to specify the field in the users collection that we want to match with the localField
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          slug: 1,
+          createdAt: 1,
+          "user.name": 1,
+          "user.photo": 1,
+        },
+      },
+    ]);
+  }
+
+  // | Step 6: Send the response to the client with the document
   // The below response will look like this:
   // { "status": "success", "data": doc }
   res.status(200).json({
     status: "success",
     data: doc,
+    relatedBlogs,
   });
 });
 
@@ -82,7 +122,9 @@ export const filterUpdate = (
     "featuredImage",
     "content",
     "tags",
-    "branch"
+    "branch",
+    "semester",
+    "subject"
   );
   // | Head over to updateBlog function in blogController.ts for the next step
   next();
@@ -194,18 +236,21 @@ export const getLatestBlogs = catchAsync(async (req, res, next) => {
 // }
 
 export const searchBlogs = catchAsync(async (req, res, next) => {
+  // https://stackoverflow.com/questions/39018389/mongodb-find-key-on-nested-object-key-json
   console.log(req.query);
   let query = {};
   let sortBy = { createdAt: -1 };
-
+  // https://www.mongodb.com/community/forums/t/search-on-a-string-array-content/16798
+  // https://www.mongodb.com/docs/manual/tutorial/query-arrays/
+  // https://stackoverflow.com/questions/21417711/search-multiple-fields-for-multiple-values-in-mongodb
   if (req.query.branch) {
-    query = { ...query, branch: req.query.branch };
+    query = { ...query, "branch.value": req.query.branch };
   }
   if (req.query.semester) {
-    query = { ...query, semester: req.query.semester };
+    query = { ...query, "semester.value": req.query.semester };
   }
   if (req.query.subject) {
-    query = { ...query, subject: req.query.subject };
+    query = { ...query, "subject.value": req.query.subject };
   }
   if (req.query.sort) {
     if (req.query.sort === "latest") {
@@ -218,10 +263,10 @@ export const searchBlogs = catchAsync(async (req, res, next) => {
     }
   }
 
-  if(req.query.search){
+  if (req.query.search) {
     query = { ...query, $text: { $search: req.query.search } };
   }
-
+  console.log(query);
   let page = req.query.page ? Number(req.query.page) : 1;
 
   // https://stackoverflow.com/questions/58485932/mongoose-search-multiple-fields
@@ -291,7 +336,7 @@ export const likeBlog = async (req: Request, res: Response) => {
   // | Step 6: If the user has not liked the blog then add the user id to the likes array of the blog
   if (index === -1) {
     // @ts-ignore
-    blog.likes.push(req.user);
+    blog.likes.push(req.user._id);
   } else {
     // | Step 7: If the user has already liked the blog then remove the user id from the likes array of the blog
     // @ts-ignore
@@ -301,6 +346,44 @@ export const likeBlog = async (req: Request, res: Response) => {
   // | Step 8: Update the blog in the database
   const updatedBlog = await Blog.findByIdAndUpdate(id, blog, { new: true });
 
+  // @ts-ignore
+  const likes = updatedBlog.likes;
+
   // | Step 9: Send the updated blog as a response
-  return res.status(200).json(updatedBlog);
+  return res.status(200).json({
+    likes,
+  });
 };
+
+export const getRandomBlogs = catchAsync(async (req, res, next) => {
+  // pick 4 random blogs and select title, featuredImage, user, slug and add "photo", "name" from the users collection to the user field in blogs collection
+  const blogs = await Blog.aggregate([
+    { $match: { draft: false, reviewed: true } },
+    { $sample: { size: 4 } },
+    {
+      // only look up the user with the user id matching the user field in the blogs collection
+
+      $lookup: {
+        from: "users",
+        localField: "user",
+        // foreignField is used to specify the field in the users collection that we want to match with the localField
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $project: {
+        title: 1,
+        featuredImage: 1,
+        slug: 1,
+        "user.name": 1,
+        "user.photo": 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: "success",
+    data: blogs,
+  });
+});

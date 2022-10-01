@@ -20,6 +20,8 @@ router
 
 router.route("/latest").get(blogController.getLatestBlogs);
 
+router.route("/random").get(blogController.getRandomBlogs);
+
 router.route("/slug/:slug").get(blogController.getBlogBySlug);
 
 router
@@ -42,6 +44,6 @@ router
 router.route("/search").get(blogController.searchBlogs);
 
 // Like a blog
-router.route("/like/:id").patch(authController.protect, blogController.likeBlog);
+router.route("/like/:id").get(authController.protect, blogController.likeBlog);
 
 export default router;

@@ -12,6 +12,7 @@ router
 // | Steps to create a new blog: Head to the authController.ts file and see the protect function.
 authController.protect, blogController.setUser, blogController.filterCreate, blogController.createBlog);
 router.route("/latest").get(blogController.getLatestBlogs);
+router.route("/random").get(blogController.getRandomBlogs);
 router.route("/slug/:slug").get(blogController.getBlogBySlug);
 router
     .route("/:id")
@@ -21,5 +22,5 @@ router
 // Search based on title, description and tags of the blog and Filter based on branch and tags of the blog
 router.route("/search").get(blogController.searchBlogs);
 // Like a blog
-router.route("/like/:id").patch(authController.protect, blogController.likeBlog);
+router.route("/like/:id").get(authController.protect, blogController.likeBlog);
 export default router;

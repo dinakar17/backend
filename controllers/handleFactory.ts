@@ -9,18 +9,23 @@ import catchAsync from "../utils/catchAsync.js";
 export const createOne = (Model: mongoose.Model<any, {}>) =>
   catchAsync(async (req, res, next) => {
     // | Step 10: create a new document in the database
-    console.log(req.body);
-    if (req.body.tags) {
-      req.body.tags = JSON.parse(req.body.tags);
-    }
+    // Note: The data that is send from the client is JSON.stringify() and that data is automatically parsed by bodyParser.json()
+    // {
+      //  title: 'Doremaon Nobita Suzuka',
+      //  description: 'Description Grammerly',
+      //  featuredImage: '',
+      //  branch: { value: 'cse', label: 'Computer Science and Engineering' },
+      //  semester: { value: '2', label: '2nd Semester' },
+      //  subject: { value: '', label: '' },
+      //  tags: [ 'tag2', 'tag3 ', 'tag4', 'tag5' ],
+      //  content: `<p>Random content here....</p><p>"Double quote" 'Single quotes' handling 'this</p>`,
+      //  draft: false,
+      //  user: new ObjectId("632461d1416122fc5212c05b")
+    //  }
+
 
     const doc = await Model.create(req.body);
 
-    // The below response will look like this:
-    // {
-    //   "status": "success",
-    //   "data": {}
-    // }
     // | Step 11: Finally, send the response to the client
     res.status(201).json({
       status: "success",

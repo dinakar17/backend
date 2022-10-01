@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import slugify from 'slugify';
+import mongoose from "mongoose";
+import slugify from "slugify";
 
 export type IBlog = mongoose.Document & {
   title: string;
@@ -22,14 +22,24 @@ const blogSchema = new mongoose.Schema<IBlog>(
   {
     title: {
       type: String,
-      required: [true, 'Must have title'],
+      required: [true, "Must have title"],
       unique: true,
     },
-    description: { type: String, default: '' },
-    featuredImage: { type: String, default: '' },
-    branch: { type: String, default: '' },
-    semester: { type: String, default: '' },
-    subject: { type: String, default: '' },
+    description: { type: String, default: "" },
+    featuredImage: { type: String, default: "" },
+    // https://mongoosejs.com/docs/schematypes.html
+    branch: {
+      value: { type: String, default: "" },
+      label: { type: String, default: "" },
+    },
+    semester: {
+      value: { type: String, default: "" },
+      label: { type: String, default: "" },
+    },
+    subject: {
+      value: { type: String, default: "" },
+      label: { type: String, default: "" },
+    },
     tags: { type: [String], default: [] },
     slug: String,
     // blogData: {
@@ -39,7 +49,7 @@ const blogSchema = new mongoose.Schema<IBlog>(
     //     required: [true, 'Must have time!'],
     //     default: Date.now(),
     //   },
-    //   // Here version is the version of the blog. This is used to sort the blogs by version 
+    //   // Here version is the version of the blog. This is used to sort the blogs by version
     //   version: {
     //     type: String,
     //     required: [true, 'Must have version!'],
@@ -53,7 +63,7 @@ const blogSchema = new mongoose.Schema<IBlog>(
     // },
     content: {
       type: String,
-      required: [true, 'Must have content!'],
+      required: [true, "Must have content!"],
     },
     likes: {
       type: [String],
@@ -61,8 +71,8 @@ const blogSchema = new mongoose.Schema<IBlog>(
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Must have user!'],
+      ref: "User",
+      required: [true, "Must have user!"],
     },
     draft: {
       type: Boolean,
@@ -82,7 +92,7 @@ const blogSchema = new mongoose.Schema<IBlog>(
 );
 
 // blogSchema.index({name: "text", "title": "text"}) means that we can search for blogs by title.
-blogSchema.index({name: "text", "title": "text"})
+blogSchema.index({ name: "text", title: "text" });
 
 // blogSchema.virtual('comment', {}) is used to add a virtual field to the schema (Future feature)
 // blogSchema.virtual('comment', {
@@ -95,7 +105,7 @@ blogSchema.index({name: "text", "title": "text"})
 
 // blogSchema.pre('save', {}) is used to run a function before the document is saved to the database
 // Here the slug is created from the title
-blogSchema.pre('save', function (next) {
+blogSchema.pre("save", function (next) {
   this.slug = slugify(this.title, { lower: true });
   next();
 });
@@ -104,13 +114,29 @@ blogSchema.pre('save', function (next) {
 // Here the populate function is used to populate the user field with the user data
 blogSchema.pre(/^find/, function (next) {
   this.populate({
-    path: 'user',
-    select: 'name photo',
+    path: "user",
+    select: "name photo",
   });
   next();
 });
 
+// fetch user name and photo from the user model when aggregating
+// blogSchema.pre("aggregate", function (next) {
+//   this.pipeline().unshift({
+//     $lookup: {
+//       from: "users",
+//       localField: "user",
+//       foreignField: "_id",
+//       as: "user",
+//     },
+//   });
+
+//   this.pipeline().unshift({
+//     $unwind: "$user",
+//   });
+// });
+
 // mongoose.model("Blog", blogSchema) is used to create a new model called Blog
-const Blog = mongoose.model<IBlog>('Blog', blogSchema);
+const Blog = mongoose.model<IBlog>("Blog", blogSchema);
 
 export default Blog;

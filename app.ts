@@ -81,10 +81,9 @@ if (process.env.NODE_ENV === 'development') {
 // Note: https://stackoverflow.com/questions/9177049/express-js-req-body-undefined
 // / app.use(express.json({ limit: '50kb' })); This is deprecated
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
-
-// parse application/json
-app.use(bodyParser.json())
+// https://stackoverflow.com/questions/19917401/error-request-entity-too-large
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 // app.use(mongoSanitize()) is used to sanitize data against NoSQL query injection attacks by removing dollar signs and dots from the request body
 app.use(mongoSanitize());
