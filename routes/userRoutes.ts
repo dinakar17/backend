@@ -43,7 +43,7 @@ router.route("/editProfile")
 // router.delete('/deleteMe', userController.deleteMe);
 
 // //Restrict all the routes below this middleware to admin only
-// router.use(authController.restrictTo('admin'));
+router.use(authController.restrictTo);
 
 // router
 //   .route('/')

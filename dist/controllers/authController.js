@@ -6,7 +6,7 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import Email from "../utils/email.js";
 import { promisify } from "util";
-// * Sign Up 
+// * Sign Up
 const createSendSignupToken = async (user, req, res, next) => {
     // signupToken = 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed (crypto.randomBytes(32).toString('hex'))
     // | Step 2: Create a signupToken and save it to the user document
@@ -42,7 +42,7 @@ export const signup = catchAsync(async (req, res, next) => {
     // The create() function is a thin wrapper around the save() function. The above create() call is equivalent to:
     // const doc = new User({ email: 'bill@microsoft.com' });
     // await doc.save(); https://masteringjs.io/tutorials/mongoose/create
-    console.log(req.body);
+    // console.log(req.body);
     // Note: req.body is x-www-form-urlencoded data not form-data
     const oldUser = await User.findOne({ email: req.body.email });
     if (oldUser) {
@@ -76,13 +76,14 @@ export const confirmSignup = catchAsync(async (req, res, next) => {
         .createHash("sha256")
         .update(req.params.token)
         .digest("hex");
-    console.log(hashedToken); // 2879a56fe791acb79f5098bb8ce4ded3df58bfcc63384730cd6452ac4574da43
-    // let user;
-    // user = await User.findOne({
+    // console.log(hashedToken); // 2879a56fe791acb79f5098bb8ce4ded3df58bfcc63384730cd6452ac4574da43
+    // let user_;
+    // user_ = await User.findOne({
+    // Note: This doesn't work since there is we're not sending any email in request body
     //   email: req.body.email,
     // });
-    // if (user.isVerified)
-    //   return next(new AppError('User has already been verified', 400));
+    // if (user_?.isVerified)
+    //   return next(new AppError('Your account is already verified. Please login to continue', 400));
     // | Step 2: Find the user document with the hashedToken and a signupTokenExpires property that is greater than the current date
     const user = await User.findOne({
         // email: req.body.email,
@@ -92,7 +93,7 @@ export const confirmSignup = catchAsync(async (req, res, next) => {
     });
     // | Step 3: If the user document is not found, send the error to the client (this error is handled by the globalErrorHandler middleware in the errorController.ts file)
     if (!user) {
-        return next(new AppError("Invalid token. Please signup again!", 400));
+        return next(new AppError("Your token has either expired or is invalid! Please signup again.", 400));
     }
     // | Step 4: If the user document is found, set the isVerified property to true and delete the signupToken and signupTokenExpires properties from the user document
     user.isVerified = true;
@@ -179,7 +180,7 @@ export const login = catchAsync(async (req, res, next) => {
     // | See the createSendToken() function for the next steps
     createSendToken(user, 200, res);
 });
-// * Forgot Password 
+// * Forgot Password
 export const forgotPassword = catchAsync(async (req, res, next) => {
     // | Step 1: Get the email from the request body
     const user = await User.findOne({ email: req.body.email });
@@ -193,6 +194,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     }
     // | Step 4: If the user is found and is verified, generate a random reset token and save it to the user document (passwordResetToken) and set the passwordResetExpires property to 10 minutes from now
     const resetToken = user.createPasswordResetToken();
+    console.log(resetToken);
     // | Step 5: Save the user document to the database
     await user.save({ validateBeforeSave: false });
     // | Step 6: Send the reset token to the user's email address and when user clicks on the link, the user will be redirected to the reset password page
@@ -223,6 +225,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
         .createHash("sha256")
         .update(req.params.token)
         .digest("hex");
+    console.log(hashedToken);
     // | Step 2: Find the user document with the hashed token and check if the passwordResetExpires property is greater than the current time
     const user = await User.findOne({
         // email: req.body.email,
@@ -280,6 +283,7 @@ export const protect = catchAsync(async (req, res, next) => {
     // | Step 7: If the user is found and the password is not changed, grant access to the protected route and add the user document to the request object
     // Ref: https://stackoverflow.com/questions/44383387/typescript-error-property-user-does-not-exist-on-type-request
     // Here we are adding the user document to the request object so that we can use it in the next middleware
+    // @ts-ignore
     req.user = currentUser;
     // Note: next() passes the control to the next middleware function in the route handler i.e., For example, setUser function in the blogsController.ts file for '/api/v1/blogs' route
     // restrictToSelf for /api/v1/blogs/:id route
@@ -289,14 +293,21 @@ export const protect = catchAsync(async (req, res, next) => {
 // export const restrictTo =
 //   (...roles: string[]) =>
 //   (req: Request, res: Response, next: NextFunction) => {
-//     // if (!roles.includes(req.user.role)) { // ? Changed this req.user to req.locals.user
-//     if (!roles.includes(res.locals.user.role)) {
+//     // if (!roles.includes(req.user.role)) { 
 //       return next(
 //         new AppError('You do not have permission to perform this action', 403) //403 for unauthorized access
 //       );
 //     }
 //     next();
 //   };
+export const restrictTo = catchAsync(async (req, res, next) => {
+    // @ts-ignore
+    if (!req.user.role.isAdmin) {
+        return next(new AppError('You do not have permission to perform this action', 403) //403 for unauthorized access
+        );
+    }
+    next();
+});
 //TODO - allow admins - by taking argument
 // restricToSelf - only allow the user to update his own data
 export const restrictToSelf = (model) => catchAsync(async (req, res, next) => {
@@ -309,6 +320,7 @@ export const restrictToSelf = (model) => catchAsync(async (req, res, next) => {
     const doc = await Model.findById(req.params.id);
     // Note: If the we're trying to delete a blog post which is already deleted, then an error is thrown by
     // | Step 10: If the document is not found, send the error to the client
+    // @ts-ignore
     if (!doc.user._id.equals(req.user._id)) {
         return next(new AppError("You do not have permission to perform this action", 403));
     }

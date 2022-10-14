@@ -6,8 +6,6 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { HydratedDocument } from "mongoose";
 import { IUser } from "models/userModel.js";
-import AppError from "./appError.js";
-import { NextFunction, Response } from "express";
 import nodemailerSendgrid from "nodemailer-sendgrid";
 
 const sendgridLogic = nodemailerSendgrid({
@@ -28,7 +26,7 @@ export default class Email {
     this.to = user.email;
     this.firstName = user.name.split(" ")[0];
     this.url = url;
-    this.from = `Blog App <${process.env.EMAIL_FROM}>`;
+    this.from = `NITC Blogs App <${process.env.EMAIL_FROM}>`;
     // this.res = res;
     // this.next = next;
   }
@@ -57,6 +55,7 @@ export default class Email {
 
   async send(template: string, subject: string) {
     // Todo: In production replace path file with __dirname + "/../views/email/${template}.pug"
+    console.log(this.url);
     const html = pug.renderFile(
       `C:/Users/Dinakar/Documents/NITC Blogs/backend/utils/../views/email/${template}.pug`,
       {

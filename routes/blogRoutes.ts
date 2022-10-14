@@ -39,11 +39,26 @@ router
     blogController.deleteBlog
   );
 
-
 // Search based on title, description and tags of the blog and Filter based on branch and tags of the blog
 router.route("/search").get(blogController.searchBlogs);
 
 // Like a blog
-router.route("/like/:id").get(authController.protect, blogController.likeBlog);
+router
+  .route("/like/:id")
+  .get(blogController.fetchLikes)
+  .patch(authController.protect, blogController.likeBlog);
+
+// Note: The following routes are only for admins
+
+// router.use(authController.protect);
+
+// router.use(authController.restrictTo);
+
+// router.route("/admin").get(blogController.getUnReviewedBlogs);
+
+// router.route("admin/:slug").get(blogController.getUnReviewedBlogBySlug);
+
+// router.route("/admin/:id").patch(blogController.reviewBlog);
+
 
 export default router;

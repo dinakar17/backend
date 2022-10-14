@@ -15,9 +15,12 @@ export const setUser = (req, res, next) => {
     next();
 };
 export const filterCreate = (req, res, next) => {
+    if (req.body.tags) {
+        req.body.tagsString = req.body.tags.join(", ").toLowerCase();
+    }
     // filterObj function is used to filter the data that is sent in the request body to ensure that only the allowed fields are sent in the request body
     // | Step 9: filter the data that is sent in the request body to ensure that only the allowed fields are sent in the request body
-    req.body = filterObj(req.body, "title", "description", "featuredImage", "branch", "semester", "subject", "tags", "content", "user", "draft");
+    req.body = filterObj(req.body, "title", "description", "featuredImage", "branch", "semester", "subject", "tags", "tagsString", "content", "user", "draft", "anonymous");
     // | Head over to createOne function in handleFactory.ts
     next();
 };
@@ -25,6 +28,7 @@ export const createBlog = factory.createOne(Blog);
 // This is the simple query out of all the queries that we have created. This is used to get a specific blog by its slug
 export const getBlogBySlug = catchAsync(async (req, res, next) => {
     // | Step 1: Get the slug from the request params. Here {slug: req.params.slug} is the same as {slug: "hello-world"}.
+    // Todo: Fetch the blog only if it is reviewed
     let query = Blog.findOne({ slug: req.params.slug });
     // Note: query.populate({path: 'comment'}) is used to populate the comment field in the blog document (Future feature)
     // query = query.populate({
@@ -43,14 +47,14 @@ export const getBlogBySlug = catchAsync(async (req, res, next) => {
         reviewed: true,
         $and: [{ branch: doc.branch }, { _id: { $ne: doc._id } }],
     })
-        .limit(4)
-        .select("title slug user createdAt");
+        .limit(5)
+        .select("title slug user createdAt featuredImage anonymous");
     // if no relevant blogs are found, then get random blogs which are reviewed and not draft
     // | Step 5: If no relevant blogs are found, then get random blogs which are reviewed and not draft
     if (relatedBlogs.length === 0) {
         relatedBlogs = await Blog.aggregate([
             { $match: { draft: false, reviewed: true } },
-            { $sample: { size: 4 } },
+            { $sample: { size: 5 } },
             {
                 // only look up the user with the user id matching the user field in the blogs collection
                 $lookup: {
@@ -67,7 +71,8 @@ export const getBlogBySlug = catchAsync(async (req, res, next) => {
                     slug: 1,
                     createdAt: 1,
                     "user.name": 1,
-                    "user.photo": 1,
+                    featuredImage: 1,
+                    anonymous: 1,
                 },
             },
         ]);
@@ -82,8 +87,11 @@ export const getBlogBySlug = catchAsync(async (req, res, next) => {
     });
 });
 export const filterUpdate = (req, res, next) => {
+    if (req.body.tags) {
+        req.body.tagsString = req.body.tags.join(", ").toLowerCase();
+    }
     // | Step 11: filter the data that is sent in the request body to ensure that only the allowed fields are sent in the request body
-    req.body = filterObj(req.body, "title", "description", "featuredImage", "content", "tags", "branch", "semester", "subject");
+    req.body = filterObj(req.body, "title", "description", "featuredImage", "branch", "semester", "subject", "tags", "tagsString", "content", "draft", "anonymous");
     // | Head over to updateBlog function in blogController.ts for the next step
     next();
 };
@@ -122,7 +130,7 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
             .sort({ createdAt: -1 })
             .limit(LIMIT)
             .skip(startIndex)
-            .select("title description featuredImage slug createdAt updatedAt branch tags user");
+            .select("title description featuredImage slug createdAt updatedAt branch tags user likes anonymous");
         const currentBlogsCount = blogs.length;
         res.json({
             data: blogs,
@@ -138,11 +146,11 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
 });
 export const getLatestBlogs = catchAsync(async (req, res, next) => {
     try {
-        const LIMIT = 5;
+        const LIMIT = 10;
         const blogs = await Blog.find({ draft: false, reviewed: true })
             .sort({ createdAt: -1 })
             .limit(LIMIT)
-            .select("title description featuredImage slug createdAt updatedAt branch tags user");
+            .select("title description featuredImage slug createdAt updatedAt branch tags user likes anonymous");
         const currentBlogsCount = blogs.length;
         res.status(200).json({
             data: blogs,
@@ -220,9 +228,26 @@ export const searchBlogs = catchAsync(async (req, res, next) => {
             .sort(sortBy)
             .limit(LIMIT)
             .skip(startIndex)
-            .select("title description featuredImage slug createdAt updatedAt branch tags user");
+            .select("title description featuredImage slug createdAt updatedAt branch tags user likes");
+        // const blogs = await Blog.aggregate([
+        //   { $match: { draft: false, reviewed: true, ...query } },
+        //   {
+        //     $project: {
+        //       title: 1,
+        //       description: 1,
+        //       featuredImage: 1,
+        //       tags: 1,
+        //       slug: 1,
+        //       createdAt: 1,
+        //       updatedAt: 1,
+        //     },
+        //   },
+        //   {
+        //     $sort: sortBy,
+        //   },
+        // ]);
         const currentBlogsCount = blogs.length;
-        console.log(blogs);
+        // console.log(blogs);
         res.json({
             data: blogs,
             currentPage: Number(page),
@@ -235,18 +260,29 @@ export const searchBlogs = catchAsync(async (req, res, next) => {
         res.status(404).json({ message: error.message });
     }
 });
+export const fetchLikes = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id))
+        return next(new AppError("No blog with that id", 404));
+    const blog = await Blog.findById(id);
+    res.status(200).json({
+        status: "success",
+        // @ts-ignore
+        likes: blog.likes,
+    });
+});
 // Unable to use createAsync(req, res, next)
-export const likeBlog = async (req, res) => {
+export const likeBlog = catchAsync(async (req, res, next) => {
     // | Step 1: Get the blog id from the request params
     const { id } = req.params;
     // | Step 2: Check if the user is authenticated or not and if not then throw an error
-    // @ts-ignore
+    // @ts-ignore No need to check if the user is authenticated or not since the middleware will do it for us
     if (!req.user) {
-        return res.json({ message: "Unauthenticated" });
+        return next(new AppError("You are not logged in. Please login to like", 401));
     }
     // | Step 3: Check if the blog id is valid or not and if not then throw an error
     if (!mongoose.Types.ObjectId.isValid(id))
-        return res.status(404).send(`No post with id: ${id}`);
+        return next(new AppError("No blog with that id", 404));
     // | Step 4: Get the blog from the database
     const blog = (await Blog.findById(id));
     // | Step 5: Check if the user has already liked the blog or not.
@@ -264,14 +300,13 @@ export const likeBlog = async (req, res) => {
         blog.likes = blog.likes.filter((id) => id !== String(req.user._id));
     }
     // | Step 8: Update the blog in the database
-    const updatedBlog = await Blog.findByIdAndUpdate(id, blog, { new: true });
-    // @ts-ignore
-    const likes = updatedBlog.likes;
+    await Blog.findByIdAndUpdate(id, blog, { new: true });
     // | Step 9: Send the updated blog as a response
-    return res.status(200).json({
-        likes,
+    res.status(200).json({
+        status: "success",
+        likes: blog.likes,
     });
-};
+});
 export const getRandomBlogs = catchAsync(async (req, res, next) => {
     // pick 4 random blogs and select title, featuredImage, user, slug and add "photo", "name" from the users collection to the user field in blogs collection
     const blogs = await Blog.aggregate([
@@ -294,6 +329,7 @@ export const getRandomBlogs = catchAsync(async (req, res, next) => {
                 slug: 1,
                 "user.name": 1,
                 "user.photo": 1,
+                anonymous: 1,
             },
         },
     ]);
@@ -302,3 +338,72 @@ export const getRandomBlogs = catchAsync(async (req, res, next) => {
         data: blogs,
     });
 });
+// ---------------- ADMIN ---------------- //
+export const getUnReviewedBlogs = catchAsync(async (req, res, next) => {
+    console.log("getUnReviewedBlogs");
+    const page = req.query.page || 1;
+    // @ts-ignore
+    const user = req.user;
+    const LIMIT = 20;
+    let query;
+    if (user.role.adminBranch === "all") {
+        query = {
+            draft: false,
+            reviewed: false,
+        };
+    }
+    else {
+        query = {
+            draft: false,
+            reviewed: false,
+            "branch.value": user.role.adminBranch,
+            "semester.value": user.role.adminSemester,
+        };
+    }
+    const totalUnReviewedBlogs = await Blog.countDocuments({
+        draft: false,
+        reviewed: false,
+    });
+    const unReviewedBlogs = await Blog.find({
+        draft: false,
+        reviewed: false,
+    })
+        .sort({ createdAt: -1 })
+        .limit(LIMIT)
+        .skip((Number(page) - 1) * LIMIT)
+        .select("title description featuredImage slug user tags createdAt");
+    console.log(unReviewedBlogs);
+    res.status(200).json({
+        status: "success",
+        data: unReviewedBlogs,
+        currentPage: Number(page),
+        numberOfPages: Math.ceil(totalUnReviewedBlogs / LIMIT),
+    });
+});
+export const getUnReviewedBlogBySlug = catchAsync(async (req, res, next) => {
+    const { slug } = req.params;
+    const blog = await Blog.findOne({ slug, draft: false, reviewed: false });
+    if (!blog) {
+        return next(new AppError("Either the blog does not exist or it has been reviewed", 404));
+    }
+    res.status(200).json({
+        status: "success",
+        data: blog,
+    });
+});
+export const reviewBlog = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id))
+        return next(new AppError("No blog with that id", 404));
+    const blog = await Blog.findByIdAndUpdate(id, { reviewed: true }, { new: true });
+    res.status(200).json({
+        status: "success",
+        data: blog,
+    });
+});
+/*
+Mongosh Query to add role field to all the users
+db.users.updateMany({}, {$set: {role: {adminBranch: "all", adminSemester: "all", isAdmin: true}}})
+
+
+*/

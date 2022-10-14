@@ -1,7 +1,12 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
-import validator from "validator";
 import bcrypt from "bcryptjs";
+let validateEmail = function (email) {
+    // check whether the email is valid and ends with "@nitc.ac.in"
+    const regex = /^([a-zA-Z0-9_\-\.]+)@nitc\.ac\.in$/;
+    const re = new RegExp(regex);
+    return re.test(email);
+};
 // For more info on Mongoose schemas, see https://mongoosejs.com/docs/schematypes.html
 //TODO - Setup a logout timestamp and make jwt invalid just like with passwordChangedAt.
 const userSchema = new mongoose.Schema({
@@ -16,7 +21,7 @@ const userSchema = new mongoose.Schema({
         // unique: true means that the email field must be unique. If it is not unique, the error message will be 'Email address already exists'
         unique: true,
         lowercase: true,
-        validate: [validator.isEmail, "Please provide a valid email"],
+        validate: [validateEmail, "Your email must be a valid NITC email"],
     },
     photo: {
         type: String,
@@ -48,9 +53,18 @@ const userSchema = new mongoose.Schema({
         },
     },
     role: {
-        type: String,
-        enum: ["user", "admin"],
-        default: "user",
+        isAdmin: {
+            type: Boolean,
+            default: false,
+        },
+        adminBranch: {
+            type: String,
+            default: "",
+        },
+        adminSemester: {
+            type: String,
+            default: "",
+        },
     },
     // Note: passwordChangedAt, passwordResetToken, passwordResetExpires, signupToken, signupTokenExpires are fields but they get set at a later time. They are not set when the user is created
     passwordChangedAt: Date,
@@ -118,7 +132,7 @@ userSchema.methods.createPasswordResetToken = function () {
         .update(resetToken)
         .digest("hex");
     // | set the passwordResetExpires to 10 minutes from now
-    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+    this.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     return resetToken;
 };
 userSchema.methods.createSignupToken = function () {

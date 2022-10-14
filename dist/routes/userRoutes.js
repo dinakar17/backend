@@ -28,7 +28,7 @@ router.route("/editProfile")
 // //to let user delete their account. doesn't really deletes the account but only deactivates it
 // router.delete('/deleteMe', userController.deleteMe);
 // //Restrict all the routes below this middleware to admin only
-// router.use(authController.restrictTo('admin'));
+router.use(authController.restrictTo);
 // router
 //   .route('/')
 //   .get(userController.getAllUsers)

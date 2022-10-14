@@ -75,7 +75,8 @@ export const getProfile = catchAsync(async (req, res, next) => {
         .sort({ createdAt: -1 })
         .skip((page - 1) * LIMIT)
         .limit(LIMIT)
-        .select("title description featuredImage slug createdAt updatedAt branch tags user");
+        .select("title description featuredImage slug createdAt updatedAt branch tags user likes");
+    console.log(blogs);
     res.status(200).json({
         status: "success",
         data: {
