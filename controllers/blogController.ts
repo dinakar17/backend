@@ -174,7 +174,7 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
   const { page } = req.query;
 
   try {
-    const LIMIT = 20;
+    const LIMIT = 16;
     const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
 
     const total = await Blog.countDocuments({ draft: false, reviewed: true }); // get the total number of blogs
@@ -210,6 +210,7 @@ export const getLatestBlogs = catchAsync(async (req, res, next) => {
     const LIMIT = 10;
     const blogs = await Blog.find({ draft: false, reviewed: true })
       .sort({ createdAt: -1 })
+      // Note: If there are less than 10 blogs, limit function will not be executed and all the blogs will be returned
       .limit(LIMIT)
       .select(
         "title description featuredImage slug createdAt updatedAt branch tags user likes anonymous"
@@ -251,7 +252,6 @@ export const getLatestBlogs = catchAsync(async (req, res, next) => {
 
 export const searchBlogs = catchAsync(async (req, res, next) => {
   // https://stackoverflow.com/questions/39018389/mongodb-find-key-on-nested-object-key-json
-  console.log(req.query);
   let query = {};
   let sortBy = { createdAt: -1 };
   // https://www.mongodb.com/community/forums/t/search-on-a-string-array-content/16798
@@ -280,7 +280,6 @@ export const searchBlogs = catchAsync(async (req, res, next) => {
   if (req.query.search) {
     query = { ...query, $text: { $search: req.query.search } };
   }
-  console.log(query);
   let page = req.query.page ? Number(req.query.page) : 1;
 
   // https://stackoverflow.com/questions/58485932/mongoose-search-multiple-fields
@@ -288,7 +287,7 @@ export const searchBlogs = catchAsync(async (req, res, next) => {
   // https://www.mongodb.com/docs/manual/core/index-text/
 
   try {
-    const LIMIT = 20;
+    const LIMIT = 16;
     const startIndex = (Number(page) - 1) * LIMIT;
 
     // search in text and tags
@@ -328,7 +327,6 @@ export const searchBlogs = catchAsync(async (req, res, next) => {
 
     const currentBlogsCount = blogs.length;
 
-    // console.log(blogs);
 
     res.json({
       data: blogs,
@@ -439,7 +437,6 @@ export const getRandomBlogs = catchAsync(async (req, res, next) => {
 // ---------------- ADMIN ---------------- //
 
 export const getUnReviewedBlogs = catchAsync(async (req, res, next) => {
-  console.log("getUnReviewedBlogs");
   const page = req.query.page || 1;
   // @ts-ignore
   const user = req.user as HydratedDocument<IUser, IUser>;
@@ -476,7 +473,6 @@ export const getUnReviewedBlogs = catchAsync(async (req, res, next) => {
     .skip((Number(page) - 1) * LIMIT)
     .select("title description featuredImage slug user tags createdAt");
 
-  console.log(unReviewedBlogs);
 
   res.status(200).json({
     status: "success",

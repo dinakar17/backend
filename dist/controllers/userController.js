@@ -76,7 +76,6 @@ export const getProfile = catchAsync(async (req, res, next) => {
         .skip((page - 1) * LIMIT)
         .limit(LIMIT)
         .select("title description featuredImage slug createdAt updatedAt branch tags user likes");
-    console.log(blogs);
     res.status(200).json({
         status: "success",
         data: {

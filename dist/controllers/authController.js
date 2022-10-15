@@ -11,7 +11,6 @@ const createSendSignupToken = async (user, req, res, next) => {
     // signupToken = 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed (crypto.randomBytes(32).toString('hex'))
     // | Step 2: Create a signupToken and save it to the user document
     const signupToken = user.createSignupToken();
-    // console.log(signupToken);
     // validateBeforeSave: false is used to prevent the validation of the user document before saving it to the database
     // | Step 3: Save the user document to the database with the signupToken and signupTokenExpires properties
     await user.save({ validateBeforeSave: false });
@@ -42,7 +41,6 @@ export const signup = catchAsync(async (req, res, next) => {
     // The create() function is a thin wrapper around the save() function. The above create() call is equivalent to:
     // const doc = new User({ email: 'bill@microsoft.com' });
     // await doc.save(); https://masteringjs.io/tutorials/mongoose/create
-    // console.log(req.body);
     // Note: req.body is x-www-form-urlencoded data not form-data
     const oldUser = await User.findOne({ email: req.body.email });
     if (oldUser) {
@@ -194,7 +192,6 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     }
     // | Step 4: If the user is found and is verified, generate a random reset token and save it to the user document (passwordResetToken) and set the passwordResetExpires property to 10 minutes from now
     const resetToken = user.createPasswordResetToken();
-    console.log(resetToken);
     // | Step 5: Save the user document to the database
     await user.save({ validateBeforeSave: false });
     // | Step 6: Send the reset token to the user's email address and when user clicks on the link, the user will be redirected to the reset password page
@@ -225,7 +222,6 @@ export const resetPassword = catchAsync(async (req, res, next) => {
         .createHash("sha256")
         .update(req.params.token)
         .digest("hex");
-    console.log(hashedToken);
     // | Step 2: Find the user document with the hashed token and check if the passwordResetExpires property is greater than the current time
     const user = await User.findOne({
         // email: req.body.email,

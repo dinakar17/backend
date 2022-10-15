@@ -27,7 +27,6 @@ const createSendSignupToken = async (
   // signupToken = 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed (crypto.randomBytes(32).toString('hex'))
   // | Step 2: Create a signupToken and save it to the user document
   const signupToken = user.createSignupToken();
-  // console.log(signupToken);
 
   // validateBeforeSave: false is used to prevent the validation of the user document before saving it to the database
   // | Step 3: Save the user document to the database with the signupToken and signupTokenExpires properties
@@ -68,7 +67,6 @@ export const signup = catchAsync(async (req, res, next) => {
 
   // const doc = new User({ email: 'bill@microsoft.com' });
   // await doc.save(); https://masteringjs.io/tutorials/mongoose/create
-  // console.log(req.body);
   // Note: req.body is x-www-form-urlencoded data not form-data
   const oldUser = await User.findOne({ email: req.body.email });
 
@@ -280,7 +278,6 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   }
   // | Step 4: If the user is found and is verified, generate a random reset token and save it to the user document (passwordResetToken) and set the passwordResetExpires property to 10 minutes from now
   const resetToken = user.createPasswordResetToken();
-  console.log(resetToken);
 
   // | Step 5: Save the user document to the database
   await user.save({ validateBeforeSave: false });
@@ -323,7 +320,6 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     .update(req.params.token)
     .digest("hex");
 
-  console.log(hashedToken);
 
   // | Step 2: Find the user document with the hashed token and check if the passwordResetExpires property is greater than the current time
   const user = await User.findOne({

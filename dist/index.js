@@ -2,6 +2,7 @@
 // Todo: Test all the endpoints using Postman
 import dotenv from 'dotenv';
 import app from './app.js';
+app;
 dotenv.config();
 const port = process.env.PORT;
 const server = app.listen(port, () => {

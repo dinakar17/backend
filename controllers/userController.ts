@@ -93,8 +93,6 @@ export const getProfile = catchAsync(async (req, res, next) => {
       "title description featuredImage slug createdAt updatedAt branch tags user likes"
     );
 
-    console.log(blogs);
-
   res.status(200).json({
     status: "success",
     data: {
