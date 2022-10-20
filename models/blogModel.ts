@@ -182,6 +182,21 @@ db.blogs.find().forEach(function (blog) {
     }
   );
 });
+
+// replace http://localhost:5000 with https://blogify.vercel.app in the featuredImage field
+db.blogs.find().forEach(function (blog) {
+  db.blogs.updateMany(
+    { _id: blog._id },
+    {
+      $set: {
+        featuredImage: blog.featuredImage.replace(
+          "http://localhost:5001",
+          "https://imagev2api.linoxcloud.com/"
+        ),
+      },
+    }
+  );
+});
 */
 
 export default Blog;

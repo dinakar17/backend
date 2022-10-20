@@ -207,7 +207,7 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
 
 export const getLatestBlogs = catchAsync(async (req, res, next) => {
   try {
-    const LIMIT = 10;
+    const LIMIT = 7;
     const blogs = await Blog.find({ draft: false, reviewed: true })
       .sort({ createdAt: -1 })
       // Note: If there are less than 10 blogs, limit function will not be executed and all the blogs will be returned

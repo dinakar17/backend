@@ -47,10 +47,10 @@ const sendErrorProd = (err, res) => {
 export default (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
-    if (process.env.NODE_ENV === 'production') { // Todo: Change this to development
+    if (process.env.NODE_ENV === 'development') {
         sendErrorDev(err, res);
     }
-    else if (process.env.NODE_ENV === 'development') { // Todo: Change this to production when deploying to production
+    else if (process.env.NODE_ENV === 'production') {
         // Object.assign(err, {}) means that we are creating a new object with the properties of err and {}. 
         let error = Object.assign(err, {});
         // console.log(error.statusCode, error.status, error.message, error.isOperational, error.stack, error.name);

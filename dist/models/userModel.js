@@ -139,7 +139,6 @@ userSchema.methods.createSignupToken = function () {
     // crypto.randomBytes(32).toString('hex') returns a random string of 32 characters.
     // For example: 3b9d6bcdbbfd4b2d9b5dab8dfbbd4bed
     const token = crypto.randomBytes(32).toString("hex");
-    // Todo: Know the purpose of signupToken and signupTokenExpires
     // The below line of code hashes the token and returns the hash
     this.signupToken = crypto.createHash("sha256").update(token).digest("hex");
     // signupTokenExpires expires in 12 hours from now

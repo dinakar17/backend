@@ -34,36 +34,34 @@ export default class Email {
   newTransport() {
     // if the app is in production, we use sendgrid to send emails
     // use sendgrid instead of gmail. Ref: https://midnightgamer.medium.com/how-to-use-sendgrid-with-nodemailer-to-send-mails-a289f30af622
-    if(process.env.NODE_ENV === "development") { // Todo: Change this to production
-    return nodemailer.createTransport(
-      nodemailerSendgrid({
-        apiKey:
-          process.env.SENDGRID_API_KEY,
-      })
-    );
-    }
+    // if (process.env.NODE_ENV === "production") {
+      return nodemailer.createTransport(
+        nodemailerSendgrid({
+          apiKey: process.env.SENDGRID_API_KEY,
+        })
+      );
+    // }
 
-    // console.log("Reached to newTransport function");
-    return nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+    // return nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: process.env.EMAIL_USERNAME,
+    //     pass: process.env.EMAIL_PASSWORD,
+    //   },
+    // });
   }
 
   async send(template: string, subject: string) {
-    // Todo: In production replace path file with __dirname + "/../views/email/${template}.pug"
-    console.log(this.url);
-    const html = pug.renderFile(
-      `C:/Users/Dinakar/Documents/NITC Blogs/backend/utils/../views/email/${template}.pug`,
-      {
-        firstName: this.firstName,
-        url: this.url,
-        subject,
-      }
-    );
+    const pathFile =
+      process.env.NODE_ENV === "development"
+        ? `C:/Users/Dinakar/Documents/NITC Blogs/backend/utils/../views/email/${template}.pug`
+        : __dirname + `/../views/email/${template}.pug`;
+
+    const html = pug.renderFile(pathFile, {
+      firstName: this.firstName,
+      url: this.url,
+      subject,
+    });
 
     const mailOptions = {
       from: this.from,
@@ -77,7 +75,7 @@ export default class Email {
       mailOptions,
       async (err: any, info: any) => {
         if (err) {
-          // Todo: The response is successful even if the email is not sent. Fix this byk providing an option to resend the email
+          // Todo: The response is successful even if the email is not sent. Fix this by providing an option to resend the email
           console.log(err);
           // return this.next(new AppError("There was an error sending the email. Try again later!", 500));
         } else {
