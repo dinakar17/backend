@@ -55,7 +55,7 @@ export default class Email {
     const pathFile =
       process.env.NODE_ENV === "development"
         ? `C:/Users/Dinakar/Documents/NITC Blogs/backend/utils/../views/email/${template}.pug`
-        : __dirname + `/../views/email/${template}.pug`;
+        : `${__dirname}/../views/email/${template}.pug`;
 
     const html = pug.renderFile(pathFile, {
       firstName: this.firstName,

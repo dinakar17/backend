@@ -37,6 +37,13 @@ mongoose
     .then(() => console.log('DB connected'));
 const app = express();
 // app.use(cores()) is used to allow cross-origin requests
+// app.use(express.json()) is used to parse incoming requests with JSON payloads
+// Note: https://stackoverflow.com/questions/9177049/express-js-req-body-undefined
+// / app.use(express.json({ limit: '50kb' })); This is deprecated
+// parse application/x-www-form-urlencoded
+// https://stackoverflow.com/questions/19917401/error-request-entity-too-large
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 // app.use(cors({
 //   origin: `${process.env.CLIENT_URL}`
@@ -57,13 +64,6 @@ if (process.env.NODE_ENV === 'development') {
     // app.use(morgan('dev')) is used to log requests to the console in the development environment
     app.use(morgan('dev'));
 }
-// app.use(express.json()) is used to parse incoming requests with JSON payloads
-// Note: https://stackoverflow.com/questions/9177049/express-js-req-body-undefined
-// / app.use(express.json({ limit: '50kb' })); This is deprecated
-// parse application/x-www-form-urlencoded
-// https://stackoverflow.com/questions/19917401/error-request-entity-too-large
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // app.use(mongoSanitize()) is used to sanitize data against NoSQL query injection attacks by removing dollar signs and dots from the request body
 app.use(mongoSanitize());
 // app.use(xss());
