@@ -122,15 +122,13 @@ export const getAllBlogs = catchAsync(async (req, res, next) => {
         const LIMIT = 16;
         const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
         const total = await Blog.countDocuments({ draft: false, reviewed: true }); // get the total number of blogs
-        // select only the title, description, featuredImage, slug, createdAt, updatedAt, branch, tags, user from the blog document
-        // Here sort({ createdAt: -1 }) is used to sort the blogs in descending order based on the createdAt field i.e., new blogs will be shown first
         // skip(startIndex) is used to skip the blogs that are already shown in the previous pages
         // Note: Do not select blogs whose field "draft" is true and "reviewed" is false
         const blogs = await Blog.find({ draft: false, reviewed: true })
             .sort({ createdAt: -1 })
             .limit(LIMIT)
             .skip(startIndex)
-            .select("title description featuredImage slug createdAt updatedAt branch tags user likes anonymous");
+            .select("title description featuredImage slug createdAt updatedAt tags user likes anonymous");
         const currentBlogsCount = blogs.length;
         res.json({
             data: blogs,
@@ -151,7 +149,7 @@ export const getLatestBlogs = catchAsync(async (req, res, next) => {
             .sort({ createdAt: -1 })
             // Note: If there are less than 10 blogs, limit function will not be executed and all the blogs will be returned
             .limit(LIMIT)
-            .select("title description featuredImage slug createdAt updatedAt branch tags user likes anonymous");
+            .select("title description featuredImage slug createdAt updatedAt tags user likes anonymous");
         const currentBlogsCount = blogs.length;
         res.status(200).json({
             data: blogs,

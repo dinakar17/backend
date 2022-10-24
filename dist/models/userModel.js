@@ -90,6 +90,7 @@ const userSchema = new mongoose.Schema({
 });
 // Mongoose middleware that runs before the save command and runs the below function
 userSchema.pre("save", async function (next) {
+    // this.isModified('password') means that if the password field is modified, then run the below code
     if (!this.isModified("password"))
         return next();
     this.password = await bcrypt.hash(this.password, 12);
@@ -97,6 +98,7 @@ userSchema.pre("save", async function (next) {
     next();
 });
 userSchema.pre("save", function (next) {
+    // !this.Modified() || this.isNew means that if the password field is modified or if the document is new, then run the below code
     if (!this.isModified("password") || this.isNew)
         return next();
     // this.passwordChangedAt is set to the current time minus 1 second. This is done because the JWT is created before the passwordChangedAt field is updated.
