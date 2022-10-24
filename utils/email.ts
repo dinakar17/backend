@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import pug from "pug";
 import { convert } from "html-to-text";
+import fs from "fs";
 
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -56,6 +57,15 @@ export default class Email {
       process.env.NODE_ENV === "development"
         ? `C:/Users/Dinakar/Documents/NITC Blogs/backend/utils/../views/email/${template}.pug`
         : `${__dirname}/../views/email/${template}.pug`;
+
+      // check if the file exists
+      if (fs.existsSync(pathFile)) {
+        console.log("File exists.");
+      } else {
+        console.log("File does not exist.");
+      }
+      // instead of absolute use express.static to serve the file to pug.renderFile
+      // instead of pathFile 
 
     const html = pug.renderFile(pathFile, {
       firstName: this.firstName,
