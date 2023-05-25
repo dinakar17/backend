@@ -1,5 +1,3 @@
-// Entry point for the application
-
 import dotenv from 'dotenv';
 import app from './app.js';
 
@@ -11,8 +9,6 @@ const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
-// process.on() is a global event handler that is called whenever an uncaught rejection occurs
-// ? Unknown 
 process.on('unhandledRejection', (err: Error) => {
   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
   console.log(err.name, err.message);
@@ -26,5 +22,6 @@ process.on('SIGTERM', () => {
   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
   server.close(() => {
     console.log('💥 Process terminated!');
+    process.exit(0);
   });
 });

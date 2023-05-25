@@ -7,11 +7,8 @@ const router = express.Router();
 
 router
   .route("/")
-  // GET /api/v1/blogs
   .get(blogController.getAllBlogs)
-  // POST /api/v1/blogs
   .post(
-    // | Steps to create a new blog: Head to the authController.ts file and see the protect function.
     authController.protect,
     blogController.setUser,
     blogController.filterCreate,
@@ -38,8 +35,7 @@ router
     authController.restrictToSelf("blog"),
     blogController.deleteBlog
   );
-
-// Search based on title, description and tags of the blog and Filter based on branch and tags of the blog
+  
 router.route("/search").get(blogController.searchBlogs);
 
 // Like a blog

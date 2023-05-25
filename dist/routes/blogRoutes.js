@@ -19,6 +19,7 @@ router
     // .get(blogController.getBlog)
     .patch(authController.protect, authController.restrictToSelf("blog"), blogController.filterUpdate, blogController.updateBlog)
     .delete(authController.protect, authController.restrictToSelf("blog"), blogController.deleteBlog);
+// Todo: Test below routes
 // Search based on title, description and tags of the blog and Filter based on branch and tags of the blog
 router.route("/search").get(blogController.searchBlogs);
 // Like a blog

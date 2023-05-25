@@ -17,11 +17,8 @@ router.post("/forgotPassword", authController.forgotPassword);
 
 router.patch("/resetPassword/:token", authController.resetPassword);
 
-// This middleware gets executed after the above routes are executed and failed to return a response
 router.use(authController.protect);
 
-// //For the user to get their complete info
-// Note: No need to use authController.protect here because it is already used above
 router
   .route("/profile")
   .get(userController.getProfile)
@@ -39,10 +36,8 @@ router.route("/editProfile")
 //   userController.updateMe
 // );
 
-// //to let user delete their account. doesn't really deletes the account but only deactivates it
 // router.delete('/deleteMe', userController.deleteMe);
 
-// //Restrict all the routes below this middleware to admin only
 router.use(authController.restrictTo);
 
 // router

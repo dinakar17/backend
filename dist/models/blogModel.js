@@ -5,7 +5,6 @@ import crypto from "crypto";
 const blogSchema = new mongoose.Schema({
     title: {
         type: String,
-        unique: true,
     },
     description: { type: String, default: "" },
     featuredImage: { type: String, default: "" },
